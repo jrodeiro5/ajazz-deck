@@ -1,0 +1,13 @@
+[project]
+name = "ajazz-deck"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "evdev>=1.9.3",
+    "hid>=1.0.9",
+    "pillow>=12.1.1",
+    "pyudev>=0.24.4",
+    "pyyaml>=6.0.3",
+]

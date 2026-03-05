@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 72 72" width="72" height="72">
+  <!-- Background -->
+  <rect width="72" height="72" rx="10" fill="#1a1a2e"/>
+
+  <!-- Folder base -->
+  <rect x="10" y="28" width="42" height="28" rx="3" fill="#16213e" stroke="#4a9eff" stroke-width="1.5"/>
+  <!-- Folder tab -->
+  <path d="M10 28 L10 24 Q10 22 12 22 L26 22 Q28 22 29 24 L31 28 Z" fill="#4a9eff" opacity="0.8"/>
+
+  <!-- Terminal lines inside folder -->
+  <line x1="16" y1="36" x2="36" y2="36" stroke="#4a9eff" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="16" y1="41" x2="30" y2="41" stroke="#4a9eff" stroke-width="1.2" stroke-linecap="round" opacity="0.6"/>
+  <line x1="16" y1="46" x2="33" y2="46" stroke="#4a9eff" stroke-width="1.2" stroke-linecap="round" opacity="0.6"/>
+
+  <!-- Magnifying glass -->
+  <circle cx="52" cy="44" r="9" fill="none" stroke="#00d4aa" stroke-width="2"/>
+  <circle cx="52" cy="44" r="5" fill="#00d4aa" opacity="0.15"/>
+  <line x1="58" y1="50" x2="63" y2="55" stroke="#00d4aa" stroke-width="2.5" stroke-linecap="round"/>
+
+  <!-- Info dot inside magnifier -->
+  <circle cx="52" cy="43" r="1.5" fill="#00d4aa"/>
+  <line x1="52" y1="46" x2="52" y2="48" stroke="#00d4aa" stroke-width="1.5" stroke-linecap="round"/>
+
+  <!-- Label text -->
+  <text x="36" y="69" text-anchor="middle" font-family="monospace" font-size="6" fill="#4a9eff" opacity="0.9">CTX</text>
+</svg>
