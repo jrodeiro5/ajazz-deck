@@ -29,6 +29,21 @@ python3 cli.py daemon start
 # 5. Press a button on your AK820 — it runs your command
 ```
 
+## Autostart on Device Connect
+
+### Linux (native)
+```bash
+sudo ./install/udev/install.sh
+# Unplug and replug AK820 — daemon starts automatically
+```
+
+### WSL (Windows Subsystem for Linux)
+See [install/wsl/README-WSL.md](install/wsl/README-WSL.md)
+
+> ⚠️ udev autostart is not supported in WSL.
+> Use usbipd to attach the device, then start the daemon manually
+> or via Task Scheduler.
+
 ## CLI Reference
 
 ```bash
