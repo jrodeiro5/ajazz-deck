@@ -1,36 +1,45 @@
-# AJAZZ AKP153E Stream Deck Button Mappings
-# Button definitions support both simple command strings and complex objects
-
 buttons:
   1:
-    label: "Project CTX"
-    image: "icons/project_context_btn.png"
-    type: "clipboard"
-    script: |
-      PROJECT=$(cat ~/.ajazz-context 2>/dev/null || pwd)
+    image: icons/project_context_btn.png
+    label: Project CTX
+    script: 'PROJECT=$(cat ~/.ajazz-context 2>/dev/null || pwd)
+
       cd "$PROJECT"
+
       INFO=""
+
       [ -f .python-version ] && INFO+="Python: $(cat .python-version)\n"
-      [ -f pyproject.toml ] && INFO+="uv: $(grep '^name' pyproject.toml | head -1)\n"
+
+      [ -f pyproject.toml ] && INFO+="uv: $(grep ''^name'' pyproject.toml | head -1)\n"
+
       [ -f .nvmrc ] && INFO+="Node: $(cat .nvmrc)\n"
+
       [ -f .node-version ] && INFO+="Node: $(cat .node-version)\n"
+
       INFO+="Branch: $(git branch --show-current 2>/dev/null)\n"
+
       INFO+="Last commit: $(git log --oneline -1 2>/dev/null)\n"
+
       [ -f docker-compose.yml ] && INFO+="Docker: YES\n"
+
       [ -f uv.lock ] && INFO+="uv.lock: found\n"
+
       echo -e "$INFO" | /mnt/c/Windows/System32/clip.exe
+
+      '
+    type: clipboard
   2:
-    label: "Git Status"
-    command: "git status"
+    command: git status
+    label: Git Status
   3:
-    label: "Docker PS"
-    command: "docker ps"
+    command: docker ps
+    label: Docker PS
   4:
-    label: "Python Version"
-    command: "uv run python --version"
+    command: uv run python --version
+    label: Python Version
   5:
-    label: "Date & Uptime"
-    command: "date && uptime"
+    command: date && uptime
+    label: Date & Uptime
   6:
-    label: "View Logs"
-    command: "tail -20 ~/ajazz-deck/deck.log"
+    command: tail -20 ~/ajazz-deck/deck.log
+    label: View Logs
