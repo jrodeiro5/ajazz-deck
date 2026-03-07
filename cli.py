@@ -9,6 +9,8 @@ import click
 import yaml
 from rich.console import Console
 from rich.table import Table
+from rich.text import Text
+from rich.panel import Panel
 
 # Paths
 PROJECT_DIR = Path(__file__).parent
@@ -16,6 +18,32 @@ PID_FILE = PROJECT_DIR / "deck.pid"
 CONFIG_FILE = Path(os.getenv("AJAZZ_CONFIG", str(PROJECT_DIR / "buttons.yaml")))
 
 console = Console()
+
+AJAZZ_BANNER = r"""
+    _        _    _     _______  _______
+   / \      | |  / \   |___   / |___   /
+  / _ \  _  | | / _ \     /  /      /  /
+ / ___ \| |_| |/ ___ \   /  /_     /  /_
+/_/   \_\\___//_/   \_\ /_____|   /_____|
+"""
+AJAZZ_SUBTITLE = "  [ OFFICIAL STORE ]"
+AJAZZ_DIVIDER  = "=" * 42
+
+
+def _show_welcome():
+    console.print(Text(AJAZZ_BANNER, style="bold #E53935"))
+    console.print(Text(AJAZZ_SUBTITLE, style="bold #BDBDBD"))
+    console.print(Text(AJAZZ_DIVIDER, style="dim #757575"))
+    console.print()
+    tips = (
+        "[bold]Tips for getting started:[/bold]\n"
+        "1. [#E53935]ajazz daemon start[/#E53935]     → Start the button daemon\n"
+        "2. [#E53935]ajazz button list[/#E53935]      → Show configured buttons\n"
+        "3. [#E53935]ajazz config validate[/#E53935]  → Check buttons.yaml\n"
+        "4. [#E53935]ajazz --help[/#E53935]           → Full command reference"
+    )
+    console.print(Panel(tips, border_style="#E53935", padding=(0, 2)))
+    console.print()
 
 
 def read_config():
@@ -45,10 +73,12 @@ def get_daemon_status():
         return "stopped"
 
 
-@click.group()
-def cli():
-    """AJAZZ CLI - Command line interface for AJAZZ deck management."""
-    pass
+@click.group(invoke_without_command=True)
+@click.pass_context
+def cli(ctx):
+    """AJAZZ AK820 Macro Pad Controller"""
+    if ctx.invoked_subcommand is None:
+        _show_welcome()
 
 
 @cli.command()
