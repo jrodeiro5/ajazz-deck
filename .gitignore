@@ -23,3 +23,7 @@ vendor/**/TransportDLL/*.dll
 vendor/**/TransportDLL/*.DLL
 vendor/**/TransportDLL/*.dylib
 vendor/**/TransportDLL/*.lib
+
+# Dev/debugging tools
+raw_hid.py
+attach.ps1
