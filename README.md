@@ -54,6 +54,47 @@ python3 cli.py config validate
 python3 cli.py device status
 ```
 
+## MCP Server (Claude Code Integration)
+
+Control the AK820 macro pad programmatically from Claude Code, Windsurf, or Zed.
+
+### Setup
+
+```bash
+# 1. Copy the example config template
+cp .mcp.json.example .mcp.json
+
+# 2. Edit .mcp.json with your absolute paths
+nano .mcp.json
+# Change "/absolute/path/to/ajazz-deck" to your actual installation path
+
+# 3. Register with Claude Code (from this project directory)
+claude mcp add --transport stdio ajazz-deck \
+  -- uv run python3 /home/javi/projects/ajazz-deck/mcp_server.py
+```
+
+### Available Tools
+
+- `list_buttons` — Show all configured buttons
+- `set_button` — Add/update a button configuration
+- `remove_button` — Delete a button
+- `daemon_status` — Check if daemon is running
+- `daemon_start` — Start the daemon
+- `daemon_stop` — Stop the daemon
+- `get_logs` — Retrieve daemon logs
+
+### Example Usage
+
+```python
+from mcp_server import set_button, daemon_start
+
+# Add a button
+set_button(button_id=1, label="Terminal", command="xterm")
+
+# Start daemon if not running
+daemon_start()
+```
+
 ## buttons.yaml format
 
 ```yaml

@@ -29,3 +29,9 @@ raw_hid.py
 
 # User's personal button configuration (copy from buttons.example.yaml)
 buttons.yaml
+
+# MCP servers config (contains API key placeholders)
+mcp-servers.json
+
+# Project-scoped MCP configuration (contains local absolute paths)
+.mcp.json
