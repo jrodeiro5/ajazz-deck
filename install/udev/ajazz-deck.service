@@ -1,0 +1,12 @@
+[Unit]
+Description=AJAZZ AK820 Macro Pad Daemon
+After=graphical-session.target
+
+[Service]
+Type=simple
+ExecStart=/bin/sh -c 'cd %h/ajazz-deck && python3 cli.py daemon start'
+ExecStop=/bin/sh -c 'cd %h/ajazz-deck && python3 cli.py daemon stop'
+Restart=no
+
+[Install]
+WantedBy=default.target

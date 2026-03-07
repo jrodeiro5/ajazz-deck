@@ -1,12 +1,10 @@
 # AJAZZ AK820 Macro Pad — udev rules
-# Installs via: sudo ./install/udev/install.sh
+# Triggers systemd USER service (required for GUI commands like xterm, xdg-open)
 
-# Auto-start daemon when AK820 is plugged in
 ACTION=="add", SUBSYSTEM=="usb", \
   ATTRS{idVendor}=="0300", ATTRS{idProduct}=="3010", \
-  TAG+="systemd", ENV{SYSTEMD_WANTS}="ajazz-deck@%k.service"
+  TAG+="systemd", ENV{SYSTEMD_USER_WANTS}="ajazz-deck.service"
 
-# Auto-stop daemon when AK820 is unplugged
 ACTION=="remove", SUBSYSTEM=="usb", \
   ENV{ID_VENDOR_ID}=="0300", ENV{ID_MODEL_ID}=="3010", \
-  RUN+="/bin/sh -c 'python3 /opt/ajazz-deck/cli.py daemon stop'"
+  TAG+="systemd", ENV{SYSTEMD_USER_WANTS}="ajazz-deck-stop.service"

@@ -1,23 +1,31 @@
 #!/bin/bash
 set -e
 
-RULES_FILE="99-ajazz-ak820.rules"
-RULES_DIR="/etc/udev/rules.d"
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
+RULES_DIR="/etc/udev/rules.d"
+SERVICE_DIR="$HOME/.config/systemd/user"
 
-echo "Installing AJAZZ AK820 udev rules..."
+echo "Installing AJAZZ AK820 autostart..."
 echo "Project path: $PROJECT_DIR"
 
-# Copy rules file
-sudo cp "$SCRIPT_DIR/$RULES_FILE" "$RULES_DIR/$RULES_FILE"
-
-# Replace placeholder path with actual project path
-sudo sed -i "s|/opt/ajazz-deck|$PROJECT_DIR|g" "$RULES_DIR/$RULES_FILE"
-
-# Reload udev
+# Install udev rules
+sudo cp "$SCRIPT_DIR/99-ajazz-ak820.rules" "$RULES_DIR/"
 sudo udevadm control --reload-rules
 sudo udevadm trigger
 
-echo "✓ udev rules installed at $RULES_DIR/$RULES_FILE"
-echo "✓ Unplug and replug your AK820 to test autostart"
+# Install systemd user services
+mkdir -p "$SERVICE_DIR"
+cp "$SCRIPT_DIR/ajazz-deck.service" "$SERVICE_DIR/"
+cp "$SCRIPT_DIR/ajazz-deck-stop.service" "$SERVICE_DIR/"
+
+# Replace %h placeholder with actual home in service files
+sed -i "s|%h/ajazz-deck|$PROJECT_DIR|g" "$SERVICE_DIR/ajazz-deck.service"
+sed -i "s|%h/ajazz-deck|$PROJECT_DIR|g" "$SERVICE_DIR/ajazz-deck-stop.service"
+
+# Reload systemd user daemon
+systemctl --user daemon-reload
+
+echo "✓ udev rules installed"
+echo "✓ systemd user services installed"
+echo "✓ Unplug and replug AK820 to test autostart"
