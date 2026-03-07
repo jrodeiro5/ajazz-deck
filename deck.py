@@ -2,19 +2,20 @@
 import sys
 import os
 from pathlib import Path
+import threading
 
-# Add SDK to path
-SDK_PATH = Path(__file__).parent / "sdk" / "Python-SDK" / "src"
-sys.path.insert(0, str(SDK_PATH))
+# Add vendored SDK to path
+VENDOR_PATH = Path(__file__).parent / "vendor"
+sys.path.insert(0, str(VENDOR_PATH))
 
 import yaml
 import subprocess
 import time
-import logging
-from logging.handlers import RotatingFileHandler
+from loguru import logger
 import shlex
 import atexit
-from typing import Dict, Optional
+from typing import Dict
+import pyudev
 
 from StreamDock.DeviceManager import DeviceManager
 from StreamDock.Devices.StreamDock import StreamDock
@@ -29,23 +30,23 @@ CONFIG_FILE = Path(os.getenv("AJAZZ_CONFIG", str(PROJECT_DIR / "buttons.yaml")))
 # Ensure directories exist
 LOG_FILE.parent.mkdir(exist_ok=True)
 
-def setup_logging() -> logging.Logger:
-    """Configure rotating file logger."""
-    logger = logging.getLogger()
-    logger.setLevel(logging.INFO)
+# Configure loguru
+logger.remove()
+logger.add(
+    sys.stderr,
+    level=os.getenv("LOG_LEVEL", "INFO"),
+    format="{time:YYYY-MM-DD HH:mm:ss} [{level}] {message}"
+)
+logger.add(
+    str(LOG_FILE),
+    rotation="10 MB",
+    retention="7 days",
+    level=os.getenv("LOG_LEVEL", "INFO"),
+    format="{time:YYYY-MM-DD HH:mm:ss} [{level}] {message}"
+)
 
-    handler = RotatingFileHandler(
-        str(LOG_FILE),
-        maxBytes=1_000_000,  # 1 MB
-        backupCount=3
-    )
-    formatter = logging.Formatter(
-        '%(asctime)s [%(levelname)s] %(message)s',
-        datefmt='%Y-%m-%d %H:%M:%S'
-    )
-    handler.setFormatter(formatter)
-    logger.addHandler(handler)
-    return logger
+# Global reconnect event for udev hotplug
+_reconnect_event = threading.Event()
 
 
 def check_single_instance() -> None:
@@ -66,7 +67,6 @@ def check_single_instance() -> None:
     atexit.register(lambda: PID_FILE.unlink(missing_ok=True))
 
 
-logger = setup_logging()
 check_single_instance()
 
 def load_config(config_file: str | Path = CONFIG_FILE) -> Dict[int, dict]:
@@ -103,19 +103,62 @@ def load_config(config_file: str | Path = CONFIG_FILE) -> Dict[int, dict]:
         sys.exit(1)
 
 def find_device() -> StreamDock:
-    """Find and open the AJAZZ via the Mirabox StreamDock SDK."""
+    """Find and open AJAZZ via the Mirabox StreamDock SDK."""
     manager = DeviceManager()
     devices = manager.enumerate()
 
     if not devices:
-        logger.error("No StreamDock device found (VID=0x0300, PID=0x3010)")
-        sys.exit(1)
+        raise RuntimeError("No StreamDock device found (VID=0x0300, PID=0x3010)")
 
     device = devices[0]
     device.open()
     device.init()
     logger.info(f"Connected to {device.path} (firmware: {device.firmware_version})")
     return device
+
+def connect_with_retry() -> StreamDock:
+    """Connect to device with exponential backoff retry."""
+    attempt = 0
+    while True:
+        try:
+            return find_device()
+        except Exception as e:
+            wait = min(2 ** attempt, 60)
+            logger.warning("Device not found (attempt {a}): {e}. Retry in {w}s",
+                           a=attempt + 1, e=e, w=wait)
+            time.sleep(wait)
+            attempt += 1
+
+def usbipd_status() -> str:
+    """Check usbipd attachment status for AJAZZ device."""
+    try:
+        result = subprocess.run(["usbipd.exe", "list"],
+                                capture_output=True, text=True, timeout=5)
+        for line in result.stdout.splitlines():
+            if "0300:3010" in line.lower():
+                return "attached" if "attached" in line.lower() else f"NOT attached — {line.strip()}"
+        return "VID:PID 0300:3010 not found in usbipd list"
+    except FileNotFoundError:
+        return "usbipd.exe not found (non-WSL or not installed)"
+    except Exception as e:
+        return f"check failed: {e}"
+
+def start_udev_monitor() -> None:
+    """Start udev monitor for hotplug device detection."""
+    def _watch():
+        context = pyudev.Context()
+        monitor = pyudev.Monitor.from_netlink(context)
+        monitor.filter_by(subsystem='usb')
+        for action, device in monitor:
+            if action == 'add':
+                vid = device.get('ID_VENDOR_ID', '')
+                pid = device.get('ID_MODEL_ID', '')
+                if vid == '0300' and pid == '3010':
+                    logger.info("udev: AJAZZ device attached — signaling reconnect")
+                    _reconnect_event.set()
+    
+    t = threading.Thread(target=_watch, daemon=True)
+    t.start()
 
 def execute_command(command: str, use_shell: bool = False) -> None:
     """Execute a command with optional shell support.
@@ -126,12 +169,13 @@ def execute_command(command: str, use_shell: bool = False) -> None:
                   If False, parse safely with shlex.split() to prevent injection.
     """
     try:
+        start = time.monotonic()
+        
         if use_shell:
             # For complex scripts with pipes (e.g., clipboard commands)
             logger.info(f"Executing script (shell): {command[:80]}...")
             result = subprocess.run(
-                command,
-                shell=True,
+                ["bash", "-c", command],
                 capture_output=True,
                 text=True,
                 timeout=10
@@ -147,13 +191,19 @@ def execute_command(command: str, use_shell: bool = False) -> None:
                 timeout=5
             )
 
+        elapsed_ms = int((time.monotonic() - start) * 1000)
+        logger.info("exit={rc} duration={ms}ms", rc=result.returncode, ms=elapsed_ms)
+        
         if result.returncode != 0:
             logger.error(f"Command failed: {command}")
             if result.stderr:
-                logger.error(f"Error: {result.stderr}")
+                logger.error(f"stderr: {result.stderr.strip()[:200]}")
         else:
-            if result.stdout:
-                logger.info(f"Output: {result.stdout.strip()}")
+            out = result.stdout.strip()
+            snippet = (out[:200] + "…") if len(out) > 200 else out
+            if snippet:
+                logger.debug(f"stdout: {snippet}")
+                
     except subprocess.TimeoutExpired:
         logger.error(f"Command timeout: {command}")
     except ValueError as e:
@@ -165,7 +215,11 @@ def execute_command(command: str, use_shell: bool = False) -> None:
 
 def make_button_callback(buttons: Dict) -> callable:
     """Return a callback for the SDK's set_key_callback."""
-    def on_key(device: StreamDock, event) -> None:
+    def on_key(device, event) -> None:
+        # Debug HID event logging
+        logger.debug("HID event: type={t} key={k} state={s}",
+                     t=event.event_type, k=getattr(event.key, 'value', None), s=event.state)
+        
         if event.event_type != EventType.BUTTON or event.state != 1:
             return  # only trigger on press, ignore release
 
@@ -190,18 +244,44 @@ def make_button_callback(buttons: Dict) -> callable:
     return on_key
 
 
+@logger.catch
 def main() -> None:
     """Main loop: open device via SDK, listen for button presses via callback."""
-    buttons = load_config()
+    # Start udev monitor for hotplug detection
+    start_udev_monitor()
+
     logger.info("Loading config...")
+    buttons = load_config()
     logger.info(f"Configured buttons: {list(buttons.keys())}")
 
-    device = find_device()
+    device = connect_with_retry()
     device.set_key_callback(make_button_callback(buttons))
+    
+    # Startup banner
+    logger.info("ajazz-deck v{ver} | device={fw} | buttons={n}",
+                ver="0.1.0", fw=device.firmware_version, n=len(buttons))
+    usb = usbipd_status()
+    if "attached" not in usb:
+        logger.warning("usbipd: {s}", s=usb)
+    else:
+        logger.info("usbipd: {s}", s=usb)
+    
     logger.info("Listening for button presses...")
 
     try:
         while True:
+            # Check for udev hotplug reconnect signal
+            if _reconnect_event.is_set():
+                _reconnect_event.clear()
+                logger.info("Reconnecting due to udev hotplug...")
+                try:
+                    device.close()
+                except Exception:
+                    pass
+                device = connect_with_retry()
+                device.set_key_callback(make_button_callback(buttons))
+                logger.info("Reconnected successfully")
+
             time.sleep(1)
     except KeyboardInterrupt:
         logger.info("Interrupted by user")

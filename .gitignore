@@ -17,5 +17,9 @@ deck.pid
 # SDK cloned separately — see README for clone instructions
 sdk/
 
-# uv scaffold stub
-main.py
+# Cache and binaries
+vendor/**/__pycache__/
+vendor/**/TransportDLL/*.dll
+vendor/**/TransportDLL/*.DLL
+vendor/**/TransportDLL/*.dylib
+vendor/**/TransportDLL/*.lib
