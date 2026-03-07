@@ -3,6 +3,7 @@
 
 import sys
 import os
+import time
 from pathlib import Path
 import subprocess
 import click
@@ -13,9 +14,9 @@ from rich.text import Text
 from rich.panel import Panel
 
 # Paths
-PROJECT_DIR = Path(__file__).parent
+PROJECT_DIR = Path(__file__).parent.resolve()
 PID_FILE = PROJECT_DIR / "deck.pid"
-CONFIG_FILE = Path(os.getenv("AJAZZ_CONFIG", str(PROJECT_DIR / "buttons.yaml")))
+CONFIG_FILE = Path(os.getenv("AJAZZ_CONFIG", PROJECT_DIR / "buttons.yaml"))
 
 console = Console()
 
@@ -103,6 +104,7 @@ def daemon(action):
                 stderr=subprocess.DEVNULL,
                 start_new_session=True
             )
+            time.sleep(0.5)  # Let subprocess fully start and write its own PID
             PID_FILE.write_text(str(proc.pid))
             console.print(f"[green]Daemon started (PID {proc.pid})[/green]")
         except Exception as e:
@@ -148,107 +150,119 @@ def daemon(action):
             sys.exit(1)
 
 
-@cli.command()
+@cli.group()
+def button():
+    """Button management commands."""
+    pass
+
+
+@button.command()
 @click.option("--json", "json_output", is_flag=True, help="Output in JSON format")
-def button_list(json_output):
+def list(json_output):
     """List all configured buttons."""
     buttons = read_config()
-    
+
     if json_output:
         import json
         console.print(json.dumps(buttons, indent=2))
         return
-    
+
     if not buttons:
         console.print("[yellow]No buttons configured[/yellow]")
         return
-    
+
     table = Table(title="Configured Buttons")
     table.add_column("ID", style="cyan")
     table.add_column("Label", style="green")
     table.add_column("Type", style="magenta")
     table.add_column("Command", style="blue")
-    
+
     for button_id, config in buttons.items():
         label = config.get("label", f"Button {button_id}")
         button_type = config.get("type", "shell")
         command = config.get("command") or config.get("script", "")
         command_preview = command[:50] + "..." if len(command) > 50 else command
-        
+
         table.add_row(str(button_id), label, button_type, command_preview)
-    
+
     console.print(table)
 
 
-@cli.command()
+@button.command()
 @click.argument("button_id", type=int)
-def button_show(button_id):
+def show(button_id):
     """Show specific button configuration."""
     buttons = read_config()
-    
+
     if button_id not in buttons:
         console.print(f"[red]Button {button_id} not found[/red]")
         sys.exit(1)
-    
+
     config = buttons[button_id]
     console.print(f"[cyan]Button {button_id} Configuration:[/cyan]")
     console.print(f"  Label: [green]{config.get('label', 'N/A')}[/green]")
     console.print(f"  Type: [magenta]{config.get('type', 'shell')}[/magenta]")
-    
+
     command = config.get("command") or config.get("script", "")
     if command:
         console.print(f"  Command: [blue]{command}[/blue]")
 
 
-@cli.command()
+@button.command()
 @click.argument("button_id", type=int)
-def button_test(button_id):
+def test(button_id):
     """Test button command execution."""
     buttons = read_config()
-    
+
     if button_id not in buttons:
         console.print(f"[red]Button {button_id} not found[/red]")
         sys.exit(1)
-    
+
     config = buttons[button_id]
     command = config.get("command") or config.get("script", "")
-    
+
     if not command:
         console.print(f"[red]Button {button_id} has no command configured[/red]")
         sys.exit(1)
-    
+
     console.print(f"[cyan]Testing button {button_id}...[/cyan]")
     console.print(f"Command: [blue]{command[:100]}[/blue]")
 
 
-@cli.command()
-def config_show():
+@cli.group()
+def config():
+    """Configuration management commands."""
+    pass
+
+
+@config.command()
+def show():
     """Display current button configuration."""
     buttons = read_config()
-    
+
     if not buttons:
         console.print("[yellow]No buttons configured[/yellow]")
         return
-    
+
     table = Table(title="Button Configuration")
     table.add_column("ID", style="cyan")
     table.add_column("Label", style="green")
     table.add_column("Type", style="magenta")
     table.add_column("Command/Script", style="blue")
-    
-    for button_id, config in buttons.items():
-        label = config.get("label", f"Button {button_id}")
-        button_type = config.get("type", "shell")
-        command = config.get("command") or config.get("script", "")
+
+    for button_id, config_item in buttons.items():
+        label = config_item.get("label", f"Button {button_id}")
+        button_type = config_item.get("type", "shell")
+        command = config_item.get("command") or config_item.get("script", "")
         command_preview = command[:60] + "..." if len(command) > 60 else command
-        
+
         table.add_row(str(button_id), label, button_type, command_preview)
-    
+
     console.print(table)
 
 
-@cli.command()
-def config_validate():
+@config.command()
+def validate():
     """Validate buttons.yaml syntax."""
     try:
         with open(CONFIG_FILE, "r") as f:
