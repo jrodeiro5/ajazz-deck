@@ -1,0 +1,39 @@
+# ============================================================
+# AJAZZ AK820 — Button Configuration
+# ============================================================
+# 1. Copy this file:  cp buttons.example.yaml buttons.yaml
+# 2. Edit buttons.yaml with your own commands
+# 3. Start the daemon: python3 cli.py daemon start
+#
+# Buttons available: 1 to 15
+# Each button needs: label (display name) + command (shell cmd)
+# ============================================================
+
+buttons:
+
+  1:
+    label: "Terminal"
+    command: "xterm"
+    # icon: icons/my-icon.png   # optional: path to .png icon
+
+  2:
+    label: "Browser"
+    command: "xdg-open https://google.com"
+
+  3:
+    label: "Files"
+    command: "xdg-open ~"
+
+  4:
+    label: "VS Code"
+    command: "code ."
+
+  5:
+    label: "Screenshot"
+    command: "scrot ~/Pictures/screenshot-$(date +%s).png"
+
+  6:
+    label: "Mute"
+    command: "pactl set-sink-mute @DEFAULT_SINK@ toggle"
+
+  # Add more buttons below — copy any block above and change the number (7-15)

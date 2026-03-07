@@ -96,7 +96,9 @@ def load_config(config_file: str | Path = CONFIG_FILE) -> Dict[int, dict]:
 
         return normalized
     except FileNotFoundError:
-        logger.error(f"Config file not found: {config_path}")
+        logger.error(
+            "buttons.yaml not found. Run: cp buttons.example.yaml buttons.yaml"
+        )
         sys.exit(1)
     except yaml.YAMLError as e:
         logger.error(f"Error parsing {config_path}: {e}")

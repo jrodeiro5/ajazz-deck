@@ -53,7 +53,10 @@ def read_config():
             config = yaml.safe_load(f)
             return config.get("buttons", {})
     except FileNotFoundError:
-        console.print(f"[red]Config file not found: {CONFIG_FILE}[/red]")
+        console.print(
+            "[red]buttons.yaml not found.[/red] "
+            "Run: [bold]cp buttons.example.yaml buttons.yaml[/bold]"
+        )
         sys.exit(1)
     except yaml.YAMLError as e:
         console.print(f"[red]Error parsing config: {e}[/red]")
@@ -255,7 +258,10 @@ def config_validate():
         console.print(f"[red]✗ Configuration error: {e}[/red]")
         sys.exit(1)
     except FileNotFoundError:
-        console.print(f"[red]✗ Config file not found: {CONFIG_FILE}[/red]")
+        console.print(
+            "[red]✗ buttons.yaml not found.[/red] "
+            "Run: [bold]cp buttons.example.yaml buttons.yaml[/bold]"
+        )
         sys.exit(1)
 
 

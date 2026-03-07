@@ -27,3 +27,6 @@ vendor/**/TransportDLL/*.lib
 # Dev/debugging tools
 raw_hid.py
 attach.ps1
+
+# User's personal button configuration (copy from buttons.example.yaml)
+buttons.yaml
