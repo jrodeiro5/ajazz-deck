@@ -13,6 +13,7 @@ wheels/
 deck.log
 deck.pid
 *.log
+*.pid
 
 # SDK cloned separately — see README for clone instructions
 sdk/
@@ -30,8 +31,13 @@ raw_hid.py
 # User's personal button configuration (copy from buttons.example.yaml)
 buttons.yaml
 
+# Temp/backup files
+*.bak
+buttons.yaml.bak
+
 # MCP servers config (contains API key placeholders)
 mcp-servers.json
+mcp.json
 
 # Project-scoped MCP configuration (contains local absolute paths)
 .mcp.json
