@@ -243,6 +243,28 @@ def test(button_id):
     console.print(f"[cyan]Testing button {button_id}...[/cyan]")
     console.print(f"Command: [blue]{command[:100]}[/blue]")
 
+    try:
+        if config.get("type") in ("script", "clipboard"):
+            subprocess.run(
+                command,
+                shell=True,
+                timeout=10,
+                capture_output=True,
+            )
+        else:
+            subprocess.run(
+                command,
+                timeout=5,
+                capture_output=True,
+            )
+        console.print(f"[green]✓ Button {button_id} executed successfully[/green]")
+    except subprocess.TimeoutExpired:
+        console.print(f"[red]✗ Button {button_id} timed out[/red]")
+        sys.exit(1)
+    except Exception as e:
+        console.print(f"[red]✗ Button {button_id} failed: {e}[/red]")
+        sys.exit(1)
+
 
 @button.command()
 @click.argument("button_id", type=int)
@@ -374,8 +396,8 @@ def config():
     pass
 
 
-@config.command()
-def show_all():
+@config.command("show")
+def show_config():
     """Display current button configuration."""
     buttons = read_config()
 
@@ -419,6 +441,43 @@ def validate():
         sys.exit(1)
     except Exception as e:
         console.print(f"[red]✗ Configuration error: {e}[/red]")
+        sys.exit(1)
+
+
+@cli.group()
+def device():
+    """Device connection and status commands."""
+    pass
+
+
+@device.command()
+def status():
+    """Show device connection status."""
+    try:
+        from StreamDock.DeviceManager import DeviceManager
+
+        manager = DeviceManager()
+        devices = manager.enumerate()
+
+        if not devices:
+            console.print("[yellow]✗ No AJAZZ AKP153 device connected[/yellow]")
+            return
+
+        device = devices[0]
+        console.print("[green]✓ Device connected[/green]")
+        console.print("  Model: [cyan]AJAZZ AKP153[/cyan]")
+        console.print("  Status: [green]Connected[/green]")
+        if hasattr(device, "VENDOR_ID"):
+            console.print(
+                f"  VID/PID: [blue]0x{device.VENDOR_ID:04x}:0x{device.PRODUCT_ID:04x}[/blue]"
+            )
+    except ImportError:
+        console.print("[red]✗ StreamDock SDK not available[/red]")
+        sys.exit(1)
+    except RuntimeError:
+        console.print("[yellow]✗ No AJAZZ AKP153 device found[/yellow]")
+    except Exception as e:
+        console.print(f"[red]✗ Error checking device: {e}[/red]")
         sys.exit(1)
 
 
