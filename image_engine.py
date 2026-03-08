@@ -1,5 +1,6 @@
 """Image processing engine for AKP153 button icons."""
 
+import base64
 import os
 from io import BytesIO
 from pathlib import Path
@@ -76,8 +77,9 @@ def generate_from_prompt(prompt: str, button_id: int) -> str:
         ),
     )
 
-    # Extract image from response
-    image_data = response.candidates[0].content.parts[0].inline_data.data
+    # Extract image from response (base64-encoded)
+    encoded_data = response.candidates[0].content.parts[0].inline_data.data
+    image_data = base64.b64decode(encoded_data)
 
     img = Image.open(BytesIO(image_data))
     img = img.convert("RGB")
