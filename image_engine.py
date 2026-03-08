@@ -79,7 +79,10 @@ def generate_from_prompt(prompt: str, button_id: int) -> str:
 
     # Extract image from response (base64-encoded)
     encoded_data = response.candidates[0].content.parts[0].inline_data.data
-    image_data = base64.b64decode(encoded_data)
+    if isinstance(encoded_data, str):
+        image_data = base64.b64decode(encoded_data)
+    else:
+        image_data = encoded_data
 
     img = Image.open(BytesIO(image_data))
     img = img.convert("RGB")
