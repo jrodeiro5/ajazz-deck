@@ -6,7 +6,7 @@ PROJECT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
 RULES_DIR="/etc/udev/rules.d"
 SERVICE_DIR="$HOME/.config/systemd/user"
 
-echo "Installing AJAZZ AK820 autostart..."
+echo "Installing AJAZZ AKP153 autostart..."
 echo "Project path: $PROJECT_DIR"
 
 # Install udev rules
@@ -26,6 +26,12 @@ sed -i "s|%h/ajazz-deck|$PROJECT_DIR|g" "$SERVICE_DIR/ajazz-deck-stop.service"
 # Reload systemd user daemon
 systemctl --user daemon-reload
 
+# Install ajazz CLI to system PATH
+echo "Installing ajazz CLI to /usr/local/bin..."
+sudo ln -sf "$PROJECT_DIR/.venv/bin/ajazz" /usr/local/bin/ajazz
+sudo ln -sf "$PROJECT_DIR/.venv/bin/ajazz-mcp" /usr/local/bin/ajazz-mcp
+echo "✓ ajazz command available globally"
+
 echo "✓ udev rules installed"
 echo "✓ systemd user services installed"
-echo "✓ Unplug and replug AK820 to test autostart"
+echo "✓ Unplug and replug AKP153 to test autostart"

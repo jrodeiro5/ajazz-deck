@@ -19,13 +19,14 @@ cd ajazz-deck
 
 # 2. Install dependencies
 uv sync
+sudo ./install/udev/install.sh
 
 # 3. Configure your buttons
 cp buttons.example.yaml buttons.yaml
 nano buttons.yaml   # edit with your commands
 
 # 4. Start the daemon
-ajazz daemon start
+ajazz daemon start    # works directly, no uv run needed
 
 # 5. Press a button on your AKP153 — it runs your command
 ```
