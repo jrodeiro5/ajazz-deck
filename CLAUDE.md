@@ -101,6 +101,8 @@ Timeouts: 5s (safe mode), 10s (shell mode)
 - **config_models.py**: Pydantic models for button and app configuration validation
 - **image_engine.py**: Image processing (URL download, local file, Gemini AI generation)
 - **raw_hid.py**: HID debugging tool (direct `/dev/hidraw` communication)
+- **research/hid-protocol/**: Raw HID reverse-engineering notes and probe script for
+  AKP153E — do not modify production code based on these; they are research only
 
 ## Development & Deployment
 

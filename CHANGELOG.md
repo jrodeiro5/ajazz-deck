@@ -27,6 +27,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Project metadata** (`.env.example`)
   - Template for required environment variables
   - GOOGLE_API_KEY configuration example
+- **GOOGLE_API_KEY setup documentation**
+  - Three options: `.env` file, shell `export`, or `env` field in `.mcp.json`
+  - `.env.example` updated with clear placeholder format
+  - `.mcp.json.example` updated with `env` field example
+  - Note that `.mcp.json` `env` field takes priority for MCP/Claude Code users
+- **Raw HID research archive** (`research/hid-protocol/`)
+  - Documents confirmed working protocol commands for AKP153E firmware V3.AKP153E.01.002
+  - Captures unresolved `set_image` protocol with open hypotheses for future investigation
+  - Includes standalone `probe.py` script for hardware testing without SDK
 
 ### Changed
 
@@ -50,8 +59,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - **GitHub workflow** — CI now correctly installs all dev tools via uv
-- **Entry points** — Clarified that CLI works with `uv run` without custom
-build system
+- **Entry points** — Clarified that CLI works with `uv run` without custom build system
+- **Device naming** — Renamed all references from AK820 to AKP153 across documentation and code
+- **WSL setup** — Fixed device attachment to use hardware ID instead of bus ID that changes on reconnect
+- **WSL documentation** — Added complete Task Scheduler automation setup instructions
+- **Image generation** — Fixed Gemini API image generation with proper base64 decoding
+  and `bytes`/`str` response handling (API can return either type)
+- **Daemon restart** — Fixed restart to wait for old process exit, preventing
+  "Another instance already running" errors
+- **Button test** — Fixed `ajazz button test` to handle multi-word commands with proper shell parsing
+- **Device status** — Fixed `ajazz device status` to read daemon logs instead of importing SDK
 
 ## [0.1.0] - 2026-03-07
 
@@ -167,36 +184,3 @@ sudo ./install/udev/install.sh
 - udev autostart not available in WSL
 - Requires manual device attachment in WSL environments
 - Single device support per daemon instance
-
-### Fixed
-
-- **Device naming throughout project** - Renamed all references from AK820 to AKP153
-  (correct device model) across documentation, code comments, and configuration
-- **WSL setup reliability** - Fixed device attachment to use hardware ID instead of
-  hardcoded bus ID that changes on reconnect
-- **WSL automation documentation** - Added complete Task Scheduler setup
-  instructions with step-by-step configuration
-- **WSL troubleshooting** - Added comprehensive troubleshooting section for
-  common device attachment and visibility issues
-- **Image generation reliability** - Fixed Gemini API image generation with proper
-  base64 decoding for AI-generated button icons
-- **Daemon restart stability** - Fixed daemon restart to wait for old process
-  exit, preventing "Another instance already running" errors
-- **Button testing functionality** - Fixed `ajazz button test` to handle multi-word
-  commands using proper shell parsing
-- **Device status reliability** - Fixed `ajazz device status` to read daemon logs
-  instead of importing SDK, improving compatibility
-- **WSL automation documentation** - Added complete Task Scheduler setup
-  instructions with step-by-step configuration
-- **WSL troubleshooting** - Added comprehensive troubleshooting section for
-  common device attachment and visibility issues
-- **Image generation reliability** - Fixed Gemini API image generation with proper
-  base64 decoding for AI-generated button icons
-- **Daemon restart stability** - Fixed daemon restart to wait for old process
-  exit, preventing "Another instance already running" errors
-- **Button testing functionality** - Fixed `ajazz button test` to handle multi-word
-  commands using proper shell parsing
-- **Device status reliability** - Fixed `ajazz device status` to read daemon logs
-  instead of importing SDK, improving compatibility
-
-## [0.1.0] - 2026-03-07

@@ -49,6 +49,8 @@ ajazz-deck/
 ├── buttons.yaml           # Button configuration (user creates)
 ├── buttons.example.yaml   # Example configuration template
 ├── vendor/                # StreamDock SDK (do not modify)
+├── research/              # Protocol research and reverse-engineering notes
+│   └── hid-protocol/      # Raw HID protocol findings for AKP153E
 ├── pyproject.toml         # Project configuration and dependencies
 └── CHANGELOG*.md          # Version history and release notes
 ```
@@ -207,9 +209,8 @@ if not daemon_status()["running"]:
 
 ### Git Workflow
 
-- **main**: Primary branch (for releases)
-- **master**: Development branch (current)
-- Always align branches before release: `git checkout main && git merge master`
+- **main**: Only branch — all work and releases go here directly
+- Tag releases with version numbers: `git tag v0.2.0`
 
 ### Before Committing
 
