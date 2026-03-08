@@ -4,7 +4,10 @@
       "type": "stdio",
       "command": "uv",
       "args": ["run", "python3", "/absolute/path/to/ajazz-deck/mcp_server.py"],
-      "cwd": "/absolute/path/to/ajazz-deck"
+      "cwd": "/absolute/path/to/ajazz-deck",
+      "env": {
+        "GOOGLE_API_KEY": "your-key-here"
+      }
     }
   }
 }

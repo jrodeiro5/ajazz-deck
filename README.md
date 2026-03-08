@@ -144,6 +144,51 @@ clear_button_image(button_id=3)
 - **Storage**: Icons saved to `icons/{button_id}.png`
 - **Device Sync**: Images pushed to device on daemon startup or reconnect
 
+## API Keys & Image Generation
+
+AI image generation (`ajazz image set --generate`) requires a Google Gemini API key.
+There are three ways to provide `GOOGLE_API_KEY`:
+
+### Option A: `.env` file (recommended for CLI use)
+
+```bash
+cp .env.example .env
+# Edit .env and set your key:
+# GOOGLE_API_KEY=your-google-api-key-here
+```
+
+The `.env` file is loaded automatically at startup and is gitignored.
+
+### Option B: Shell environment variable
+
+```bash
+export GOOGLE_API_KEY="your-google-api-key-here"
+# Add to ~/.bashrc or ~/.zshrc to persist across sessions
+```
+
+### Option C: `env` field in `.mcp.json` (for MCP users)
+
+```json
+{
+  "mcpServers": {
+    "ajazz-deck": {
+      "type": "stdio",
+      "command": "uv",
+      "args": ["run", "python3", "/absolute/path/to/ajazz-deck/mcp_server.py"],
+      "cwd": "/absolute/path/to/ajazz-deck",
+      "env": {
+        "GOOGLE_API_KEY": "your-key-here"
+      }
+    }
+  }
+}
+```
+
+> **Note:** When using Claude Code MCP, Option C takes priority over Options A and B,
+> since the MCP server process inherits only the env vars defined in `.mcp.json`.
+
+Get a free API key at <https://aistudio.google.com/apikey>.
+
 ## Changelog
 
 See [CHANGELOG.md](CHANGELOG.md) for user-facing changes and release notes.
@@ -165,8 +210,8 @@ cp .mcp.json.example .mcp.json
 nano .mcp.json
 # Change "/absolute/path/to/ajazz-deck" to your actual installation path
 
-# 3. Set up environment variables (for image generation features)
-export GOOGLE_API_KEY="your-google-api-key"
+# 3. (Optional) Add GOOGLE_API_KEY to .mcp.json for AI image generation
+#    See "API Keys & Image Generation" section below for all options
 
 # 4. Register with Claude Code (from this project directory)
 claude mcp add --transport stdio ajazz-deck \
