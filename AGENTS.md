@@ -272,7 +272,8 @@ if not daemon_status()["running"]:
 1. Validate button ID is 1-15
 2. Use `set_button()` MCP tool or `ajazz button set <id>` CLI command
 3. Run `config validate` to check syntax
-4. Test with `daemon restart` if running
+4. Test button execution: `ajazz button test <id>`
+5. Test with `daemon restart` if running
 
 ### Debugging Device Issues
 
@@ -280,6 +281,7 @@ if not daemon_status()["running"]:
 2. Review logs: `ajazz logs [--lines N]` or `tail -f deck.log`
 3. Verify daemon: `ajazz daemon status`
 4. Test with simple button first
+5. Test button commands: `ajazz button test <id>`
 
 ### Adding New CLI Commands
 

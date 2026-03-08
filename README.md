@@ -59,6 +59,7 @@ ajazz logs [--lines N]                  # Show last N lines from deck.log
 # Button Configuration
 ajazz button list                       # Show all configured buttons
 ajazz button show <id>                  # Show button details
+ajazz button test <id>                  # Test button command execution
 ajazz button set <id> --label TEXT --command TEXT 
   [--type shell|clipboard|script] [--icon PATH]
 ajazz button remove <id>                # Remove button from configuration

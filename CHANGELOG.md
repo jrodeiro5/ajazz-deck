@@ -167,3 +167,36 @@ sudo ./install/udev/install.sh
 - udev autostart not available in WSL
 - Requires manual device attachment in WSL environments
 - Single device support per daemon instance
+
+### Fixed
+
+- **Device naming throughout project** - Renamed all references from AK820 to AKP153
+  (correct device model) across documentation, code comments, and configuration
+- **WSL setup reliability** - Fixed device attachment to use hardware ID instead of
+  hardcoded bus ID that changes on reconnect
+- **WSL automation documentation** - Added complete Task Scheduler setup
+  instructions with step-by-step configuration
+- **WSL troubleshooting** - Added comprehensive troubleshooting section for
+  common device attachment and visibility issues
+- **Image generation reliability** - Fixed Gemini API image generation with proper
+  base64 decoding for AI-generated button icons
+- **Daemon restart stability** - Fixed daemon restart to wait for old process
+  exit, preventing "Another instance already running" errors
+- **Button testing functionality** - Fixed `ajazz button test` to handle multi-word
+  commands using proper shell parsing
+- **Device status reliability** - Fixed `ajazz device status` to read daemon logs
+  instead of importing SDK, improving compatibility
+- **WSL automation documentation** - Added complete Task Scheduler setup
+  instructions with step-by-step configuration
+- **WSL troubleshooting** - Added comprehensive troubleshooting section for
+  common device attachment and visibility issues
+- **Image generation reliability** - Fixed Gemini API image generation with proper
+  base64 decoding for AI-generated button icons
+- **Daemon restart stability** - Fixed daemon restart to wait for old process
+  exit, preventing "Another instance already running" errors
+- **Button testing functionality** - Fixed `ajazz button test` to handle multi-word
+  commands using proper shell parsing
+- **Device status reliability** - Fixed `ajazz device status` to read daemon logs
+  instead of importing SDK, improving compatibility
+
+## [0.1.0] - 2026-03-07
