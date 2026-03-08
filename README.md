@@ -50,22 +50,43 @@ See [install/wsl/README-WSL.md](install/wsl/README-WSL.md)
 ## CLI Reference
 
 ```bash
+# Daemon Management
 ajazz daemon start|stop|restart|status
-ajazz button list
-ajazz button show <id>
-ajazz config validate
-ajazz device status
+ajazz logs [--lines N]                  # Show last N lines from deck.log 
+                                         # (default: 20)
+
+# Button Configuration
+ajazz button list                       # Show all configured buttons
+ajazz button show <id>                  # Show button details
+ajazz button set <id> --label TEXT --command TEXT 
+  [--type shell|clipboard|script] [--icon PATH]
+ajazz button remove <id>                # Remove button from configuration
+
+# Button Images
+ajazz image set <id> --url URL          # Set image from URL (auto-resizes to 96×96)
+ajazz image set <id> --file PATH        # Set image from local file
+ajazz image set <id> --generate PROMPT  # Generate image with Gemini (requires GOOGLE_API_KEY)
+ajazz image show <id>                   # Show button's current image path
+ajazz image clear <id>                  # Remove image from button
+
+# Configuration & Status
+ajazz config show                       # Display button configuration
+ajazz config validate                   # Validate buttons.yaml syntax
+ajazz device status                     # Show device connection status
 ```
 
 ## Features
 
 - **Simple YAML Configuration**: Easy button setup with labels and commands
+- **Button Management**: Add, update, remove buttons via CLI with validation
 - **Button Images**: Set custom icons (96×96 px) from URLs, local files, or AI-generated
 - **Rich CLI Output**: Beautiful terminal interface with AJAZZ branding
 - **udev Autostart**: Automatic daemon startup when device is connected
 - **WSL Support**: Full support for Windows Subsystem for Linux
 - **MCP Integration**: Programmatic control from Claude Code, Windsurf, or Zed
 - **JSON Output**: Script-friendly output format for automation
+- **Log Viewing**: Built-in log viewer with configurable line count
+- **Auto-restart**: Daemon automatically restarts when configuration changes
 
 ## Image Support
 

@@ -10,7 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - **Button configuration CLI commands**
-  - `ajazz button set <id>` — Add/update button with label, command, type, icon options
+  - `ajazz button set <id>` — Add/update button with label, command, type,
+    icon options
   - `ajazz button remove <id>` — Remove button from configuration
   - `ajazz logs [--lines N]` — View daemon log file (default: last 20 lines)
 - **Image processing engine** (`image_engine.py`)
@@ -49,11 +50,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - **GitHub workflow** — CI now correctly installs all dev tools via uv
-- **Entry points** — Clarified that CLI works with `uv run` without custom build system
+- **Entry points** — Clarified that CLI works with `uv run` without custom
+build system
 
 ## [0.1.0] - 2026-03-07
 
-### Added
+### v0.1.0 Added
 
 - **Production-ready daemon** with reliable logging and automatic reconnection
 - **Comprehensive CLI** with rich formatting and AJAZZ branding
@@ -67,7 +69,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Hotplug monitoring** for automatic device reconnection
 - **PID-based daemon control** with proper process management
 
-### Fixed
+### v0.1.0 Fixed
 
 - **Config path resolution** using absolute paths and environment variables
 - **PID race conditions** during daemon startup

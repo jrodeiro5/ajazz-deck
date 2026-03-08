@@ -20,6 +20,9 @@ uv run python3 cli.py daemon start
 
 # Run tests (when implemented)
 uv run pytest -v
+
+# View logs
+uv run ajazz logs [--lines N]  # Show last N lines (default: 20)
 ```
 
 ## Project Knowledge
@@ -167,6 +170,17 @@ uv run pytest tests/test_cli.py
 - `set_button_image_from_prompt(button_id, prompt)` - Generate with AI
 - `clear_button_image(button_id)` - Remove image
 
+### CLI Commands for Agents
+
+- `ajazz button set <id> --label TEXT --command TEXT [--type TYPE] [--icon PATH]`
+  - Configure button
+- `ajazz button remove <id>` - Remove button
+- `ajazz logs [--lines N]` - View daemon logs
+- `ajazz image set <id> --url URL` - Set image from URL
+- `ajazz image set <id> --file PATH` - Set image from file
+- `ajazz image set <id> --generate PROMPT` - Generate image with AI
+- `ajazz image clear <id>` - Remove image
+
 ### Example MCP Usage
 
 ```python
@@ -256,14 +270,14 @@ if not daemon_status()["running"]:
 ### Adding New Button Configuration
 
 1. Validate button ID is 1-15
-2. Use `set_button()` MCP tool or edit `buttons.yaml`
+2. Use `set_button()` MCP tool or `ajazz button set <id>` CLI command
 3. Run `config validate` to check syntax
 4. Test with `daemon restart` if running
 
 ### Debugging Device Issues
 
 1. Check device status: `ajazz device status`
-2. Review logs: `tail -f deck.log`
+2. Review logs: `ajazz logs [--lines N]` or `tail -f deck.log`
 3. Verify daemon: `ajazz daemon status`
 4. Test with simple button first
 
@@ -273,6 +287,13 @@ if not daemon_status()["running"]:
 2. Use Rich for output formatting
 3. Add help text and examples
 4. Test with `--help` flag
+
+### Managing Button Images
+
+1. Use `ajazz image set <id> --url URL` for web images
+2. Use `ajazz image set <id> --file PATH` for local files
+3. Use `ajazz image set <id> --generate PROMPT` for AI generation
+4. View with `ajazz image show <id>` and remove with `ajazz image clear <id>`
 
 This AGENTS.md file helps AI agents understand the project structure, coding standards,
 and workflows specific to the AJAZZ Deck macro pad controller project.
