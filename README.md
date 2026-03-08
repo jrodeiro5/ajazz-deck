@@ -72,7 +72,6 @@ ajazz image clear <id>                  # Remove image from button
 # Configuration & Status
 ajazz config show                       # Display button configuration
 ajazz config validate                   # Validate buttons.yaml syntax
-ajazz device status                     # Show device connection status
 ```
 
 ## Features
@@ -253,7 +252,7 @@ LOG_LEVEL=DEBUG ajazz daemon start   # verbose mode
 ### WSL issues
 
 - Follow [install/wsl/README-WSL.md](install/wsl/README-WSL.md) for usbipd setup
-- Manually attach device: `usbipd wsl attach --busid <busid>`
+- Manually attach device: `usbipd attach --wsl --hardware-id 0300:3010`
 
 ## License
 
