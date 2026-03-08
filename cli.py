@@ -141,13 +141,29 @@ def daemon(action):
 
     elif action == "restart":
         # Stop if running
+        old_pid = None
         if PID_FILE.exists():
             try:
-                pid = int(PID_FILE.read_text().strip())
-                os.kill(pid, 15)
-                PID_FILE.unlink()
+                old_pid = int(PID_FILE.read_text().strip())
+                os.kill(old_pid, 15)
+                # Don't unlink PID_FILE here; let the old process clean it up via atexit
             except (ProcessLookupError, ValueError):
-                pass
+                # Old process already gone, clean up the stale file
+                PID_FILE.unlink(missing_ok=True)
+
+        # Wait for old process to fully terminate before starting new one
+        # Check if the process is actually gone
+        if old_pid:
+            for _ in range(30):  # Wait up to 3 seconds
+                try:
+                    os.kill(old_pid, 0)  # Check if process exists (doesn't kill it)
+                    time.sleep(0.1)
+                except ProcessLookupError:
+                    break  # Process is gone
+
+        # Ensure PID file is gone before starting new daemon
+        time.sleep(0.2)
+        PID_FILE.unlink(missing_ok=True)
 
         # Start
         try:
@@ -158,7 +174,7 @@ def daemon(action):
                 stderr=subprocess.DEVNULL,
                 start_new_session=True,
             )
-            PID_FILE.write_text(str(proc.pid))
+            time.sleep(0.5)  # Let subprocess fully start and write its own PID
             console.print(f"[green]Daemon restarted (PID {proc.pid})[/green]")
         except Exception as e:
             console.print(f"[red]Failed to restart: {e}[/red]")
