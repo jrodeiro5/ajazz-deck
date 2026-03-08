@@ -16,8 +16,8 @@ Status legend used throughout this file:
 """
 
 import io
-import time
 import threading
+import time
 
 import hid
 from PIL import Image
@@ -28,21 +28,34 @@ from PIL import Image
 
 DEVICE_PATH = b"/dev/hidraw1"
 PACKET_SIZE = 512
-IMAGE_SIZE = (85, 85)   # AKP153E native key image dimensions
+IMAGE_SIZE = (85, 85)  # AKP153E native key image dimensions
 
 # Logical button (1-15) → hardware key index mapping.
 # Derived from SDK reverse-engineering. Used for key events;
 # may differ for image commands — see send_image_attempt() notes.
 KEY_MAP = {
-    1: 13, 2: 10, 3: 7,  4: 4,  5: 1,
-    6: 14, 7: 11, 8: 8,  9: 5,  10: 2,
-    11: 15, 12: 12, 13: 9, 14: 6, 15: 3,
+    1: 13,
+    2: 10,
+    3: 7,
+    4: 4,
+    5: 1,
+    6: 14,
+    7: 11,
+    8: 8,
+    9: 5,
+    10: 2,
+    11: 15,
+    12: 12,
+    13: 9,
+    14: 6,
+    15: 3,
 }
 
 
 # ---------------------------------------------------------------------------
 # Low-level send
 # ---------------------------------------------------------------------------
+
 
 def _send(device: hid.Device, data: list[int], lock: threading.Lock) -> None:
     """Send one 512-byte HID packet, zero-padded, with report ID 0x00.
@@ -59,6 +72,7 @@ def _send(device: hid.Device, data: list[int], lock: threading.Lock) -> None:
 # Wake — WORKS
 # ---------------------------------------------------------------------------
 
+
 def wake(device: hid.Device, lock: threading.Lock, brightness: int = 100) -> None:
     """Set brightness and clear all button images.
 
@@ -68,9 +82,17 @@ def wake(device: hid.Device, lock: threading.Lock, brightness: int = 100) -> Non
     # WORKS — screen lights up immediately.
     """
     # Brightness packet: CRT..LIG..PCT
-    _send(device, [0x43, 0x52, 0x54, 0x00, 0x00, 0x4C, 0x49, 0x47, 0x00, 0x00, brightness], lock)
+    _send(
+        device,
+        [0x43, 0x52, 0x54, 0x00, 0x00, 0x4C, 0x49, 0x47, 0x00, 0x00, brightness],
+        lock,
+    )
     # Clear all (black): CRT..CLE..0x00 0xFF
-    _send(device, [0x43, 0x52, 0x54, 0x00, 0x00, 0x43, 0x4C, 0x45, 0x00, 0x00, 0x00, 0xFF], lock)
+    _send(
+        device,
+        [0x43, 0x52, 0x54, 0x00, 0x00, 0x43, 0x4C, 0x45, 0x00, 0x00, 0x00, 0xFF],
+        lock,
+    )
 
 
 def _heartbeat_worker(
@@ -87,7 +109,19 @@ def _heartbeat_worker(
         try:
             _send(
                 device,
-                [0x43, 0x52, 0x54, 0x00, 0x00, 0x4C, 0x49, 0x47, 0x00, 0x00, brightness],
+                [
+                    0x43,
+                    0x52,
+                    0x54,
+                    0x00,
+                    0x00,
+                    0x4C,
+                    0x49,
+                    0x47,
+                    0x00,
+                    0x00,
+                    brightness,
+                ],
                 lock,
             )
         except Exception:
@@ -98,7 +132,10 @@ def _heartbeat_worker(
 # Image attempt — BROKEN (ACK received but image does not appear)
 # ---------------------------------------------------------------------------
 
-def send_image_attempt(device: hid.Device, lock: threading.Lock, hw_key: int = 1) -> dict:
+
+def send_image_attempt(
+    device: hid.Device, lock: threading.Lock, hw_key: int = 1
+) -> dict:
     """Best current attempt at sending a solid red image to a button.
 
     Protocol sequence (from gist ZCube/430fab6039899eaa0e18367f60d36b3c):
@@ -135,12 +172,22 @@ def send_image_attempt(device: hid.Device, lock: threading.Lock, hw_key: int = 1
 
     # Step 1: header — command 0x42 0x41 0x54 ("BAT"?), size, hw_key
     header = [
-        0x43, 0x52, 0x54, 0x00, 0x00,
-        0x42, 0x41, 0x54,             # command bytes — may be wrong
-        0x00, 0x00,
-        size_hi, size_lo,
+        0x43,
+        0x52,
+        0x54,
+        0x00,
+        0x00,
+        0x42,
+        0x41,
+        0x54,  # command bytes — may be wrong
+        0x00,
+        0x00,
+        size_hi,
+        size_lo,
         hw_key,
-        0x00, 0x00, 0x00,
+        0x00,
+        0x00,
+        0x00,
     ]
     _send(device, header, lock)
 
