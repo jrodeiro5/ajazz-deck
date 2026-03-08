@@ -17,7 +17,7 @@ wheels = [
 [[package]]
 name = "ajazz-deck"
 version = "0.1.0"
-source = { virtual = "." }
+source = { editable = "." }
 dependencies = [
     { name = "click" },
     { name = "fastmcp" },
