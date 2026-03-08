@@ -329,9 +329,7 @@ def remove(button_id):
         sys.exit(1)
 
     if not CONFIG_FILE.exists():
-        console.print(
-            "[red]buttons.yaml not found. No button to remove.[/red]"
-        )
+        console.print("[red]buttons.yaml not found. No button to remove.[/red]")
         sys.exit(1)
 
     try:
@@ -430,14 +428,14 @@ def image():
     pass
 
 
-@image.command()
+@image.command("set")
 @click.argument("button_id", type=int)
 @click.option("--url", help="Download image from URL")
 @click.option("--file", "file_path", help="Use local image file")
 @click.option(
     "--generate", help="Generate image from text prompt (requires GOOGLE_API_KEY)"
 )
-def set(button_id, url, file_path, generate):
+def set_image(button_id, url, file_path, generate):
     """Set button image from URL, local file, or AI-generated prompt."""
     if not 1 <= button_id <= 15:
         console.print(f"[red]Error: button_id must be 1–15, got {button_id}[/red]")
@@ -571,7 +569,11 @@ def show_image(button_id):
 
 @cli.command()
 @click.option(
-    "--lines", "-n", type=int, default=20, help="Number of log lines to show (default: 20)"
+    "--lines",
+    "-n",
+    type=int,
+    default=20,
+    help="Number of log lines to show (default: 20)",
 )
 def logs(lines):
     """Show last N lines from daemon log file."""
