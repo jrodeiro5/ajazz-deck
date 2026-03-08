@@ -1,0 +1,39 @@
+name: CI
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+    branches: [master, main]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    name: Lint & Validation
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Install dependencies
+        run: uv sync
+
+      - name: Ruff lint
+        run: uv run ruff check .
+
+      - name: Ruff format check
+        run: uv run ruff format --check .
+
+      - name: Check image_engine imports
+        run: uv run python3 -c "from image_engine import process_image; print('✓ image_engine OK')"
+
+      - name: Check MCP server imports
+        run: uv run python3 -c "from mcp_server import mcp; print('✓ MCP OK')"
+
+      - name: Check config models
+        run: uv run python3 -c "from config_models import ButtonConfig, AjazzConfig; print('✓ Config models OK')"
+
+      - name: Validate example config
+        run: uv run python3 -c "import yaml; from config_models import AjazzConfig; cfg = AjazzConfig(**yaml.safe_load(open('buttons.example.yaml'))); print('✓ Example config valid')"
