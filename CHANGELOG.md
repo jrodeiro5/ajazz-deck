@@ -5,6 +5,52 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **Button configuration CLI commands**
+  - `ajazz button set <id>` — Add/update button with label, command, type, icon options
+  - `ajazz button remove <id>` — Remove button from configuration
+  - `ajazz logs [--lines N]` — View daemon log file (default: last 20 lines)
+- **Image processing engine** (`image_engine.py`)
+  - Download images from URL with automatic 96×96px resizing
+  - Local file image processing with validation
+  - AI image generation from text prompts via Gemini API
+  - Support for GOOGLE_API_KEY environment variable
+- **Developer documentation** (`AGENTS.md`)
+  - Comprehensive guide for AI agents working with the project
+  - Code style standards and examples
+  - MCP integration documentation
+  - Common agent tasks and workflows
+- **Project metadata** (`.env.example`)
+  - Template for required environment variables
+  - GOOGLE_API_KEY configuration example
+
+### Changed
+
+- **Gemini API model upgrade**
+  - Updated from `gemini-2.0-flash-preview-image-generation` to `gemini-3.1-flash-image-preview`
+  - 64% faster (381 tokens/sec vs 232 tokens/sec)
+  - Future-proof (Gemini 2.0 Flash retiring June 1, 2026)
+- **CLI welcome screen**
+  - Updated tips panel to highlight `button set` command as primary workflow
+  - Improved visual layout with better formatting
+- **CI/CD workflow**
+  - Fixed ruff installation: use `uv sync --dev` instead of `--all-groups`
+  - Ensures dev dependencies (ruff) are installed for linting checks
+- **Dependencies updated**
+  - Added `httpx>=0.27` for URL image downloads
+  - Added `google-genai>=1.0` for Gemini API integration
+  - Added `python-dotenv>=1.0` for environment configuration
+  - Added `pydantic>=2.0.0` for model validation
+  - Added `ruff>=0.1.0` as dev dependency for code quality
+
+### Fixed
+
+- **GitHub workflow** — CI now correctly installs all dev tools via uv
+- **Entry points** — Clarified that CLI works with `uv run` without custom build system
+
 ## [0.1.0] - 2026-03-07
 
 ### Added
