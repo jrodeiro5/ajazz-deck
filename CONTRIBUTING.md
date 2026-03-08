@@ -53,7 +53,7 @@ uv run python3 -c "from config_models import ButtonConfig, AjazzConfig; print('O
 
 ### 3. Hardware Testing
 
-Most contributions can be tested without an AJAZZ AK820:
+Most contributions can be tested without an AJAZZ AKP153:
 - CLI command changes ✓ (no hardware needed)
 - Config validation ✓ (no hardware needed)
 - Image processing ✓ (no hardware needed)
@@ -161,7 +161,7 @@ class ButtonConfig(BaseModel):
 
 ## Testing Without Hardware
 
-All non-daemon code can be tested without an AK820:
+All non-daemon code can be tested without an AKP153:
 
 ```bash
 # Test image processing

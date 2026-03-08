@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""FastMCP server for AJAZZ AK820 macro pad control."""
+"""FastMCP server for AJAZZ AKP153 macro pad control."""
 
 import os
 import subprocess
@@ -20,7 +20,7 @@ LOG_FILE = PROJECT_DIR / "deck.log"
 mcp = FastMCP(
     "ajazz-deck",
     instructions="""
-    Controls the AJAZZ AK820 macro pad daemon.
+    Controls the AJAZZ AKP153 macro pad daemon.
     Use set_button to configure physical buttons with shell commands.
     Always check daemon_status before starting.
     After set_button, daemon auto-restarts if it was running.
@@ -73,7 +73,7 @@ def _run_cli(*args) -> str:
 
 @mcp.tool()
 def list_buttons() -> dict:
-    """List all configured buttons on the AK820 macro pad."""
+    """List all configured buttons on the AKP153 macro pad."""
     config = _read_config()
     buttons = config.get("buttons", {})
     if not buttons:
@@ -93,7 +93,7 @@ def set_button(
     type: str = "shell",
     icon: str | None = None,
 ) -> str:
-    """Configure a physical button on the AK820.
+    """Configure a physical button on the AKP153.
 
     Args:
         button_id: Button number (1-15)
@@ -140,7 +140,7 @@ def set_button(
 
 @mcp.tool()
 def remove_button(button_id: int) -> str:
-    """Remove a button configuration from the AK820."""
+    """Remove a button configuration from the AKP153."""
     config = _read_config()
     buttons = config.get("buttons", {})
     if button_id not in buttons:
@@ -156,7 +156,7 @@ def remove_button(button_id: int) -> str:
 
 @mcp.tool()
 def daemon_status() -> dict:
-    """Check if the AK820 daemon is running."""
+    """Check if the AKP153 daemon is running."""
     running, pid = _daemon_running()
     return {
         "running": running,
@@ -168,7 +168,7 @@ def daemon_status() -> dict:
 
 @mcp.tool()
 def daemon_start() -> str:
-    """Start the AK820 daemon."""
+    """Start the AKP153 daemon."""
     running, pid = _daemon_running()
     if running:
         return f"Daemon already running (PID {pid})."
@@ -181,7 +181,7 @@ def daemon_start() -> str:
 
 @mcp.tool()
 def daemon_stop() -> str:
-    """Stop the AK820 daemon."""
+    """Stop the AKP153 daemon."""
     running, _ = _daemon_running()
     if not running:
         return "Daemon is not running."

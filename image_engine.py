@@ -1,4 +1,4 @@
-"""Image processing engine for AK820 button icons."""
+"""Image processing engine for AKP153 button icons."""
 
 import os
 from io import BytesIO
@@ -11,7 +11,7 @@ from PIL import Image
 # Load .env file
 load_dotenv()
 
-TARGET_SIZE = (96, 96)  # AK820 native key format
+TARGET_SIZE = (96, 96)  # AKP153 native key format
 ICONS_DIR = Path("icons")
 ICONS_DIR.mkdir(exist_ok=True)
 

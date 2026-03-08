@@ -1,4 +1,4 @@
-"""Configuration models for AJAZZ AK820 button configuration."""
+"""Configuration models for AJAZZ AKP153 button configuration."""
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
@@ -31,7 +31,7 @@ class ButtonConfig(BaseModel):
 
 
 class AjazzConfig(BaseModel):
-    """Complete AJAZZ AK820 configuration."""
+    """Complete AJAZZ AKP153 configuration."""
 
     buttons: dict[int, ButtonConfig] = Field(
         default_factory=dict,

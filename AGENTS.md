@@ -252,7 +252,7 @@ if not daemon_status()["running"]:
 
 ## Device-Specific Considerations
 
-### AJAZZ AK820 Device
+### AJAZZ AKP153 Device
 
 - 15 programmable buttons (IDs: 1-15)
 - 96×96 pixel display per button

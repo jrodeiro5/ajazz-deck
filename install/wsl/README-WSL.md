@@ -1,4 +1,4 @@
-# WSL Setup — AJAZZ AK820
+# WSL Setup — AJAZZ AKP153
 
 WSL does not support udev. Use usbipd to attach the device.
 

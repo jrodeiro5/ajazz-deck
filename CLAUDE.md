@@ -5,7 +5,7 @@ in this repository.
 
 ## Project Overview
 
-**AJAZZ Deck** is a Linux daemon + CLI for the AJAZZ AK820 macro pad.
+**AJAZZ Deck** is a Linux daemon + CLI for the AJAZZ AKP153 macro pad.
 It loads button configurations from YAML and executes shell commands or scripts
 when buttons are pressed.
 
@@ -183,7 +183,7 @@ See `install/wsl/README-WSL.md` for full setup.
 
 1. **URL Download** (`download_from_url`):
    - Downloads image from HTTP/HTTPS URL
-   - Auto-resizes to 96×96 px (AK820 native format)
+   - Auto-resizes to 96×96 px (AKP153 native format)
    - Converts to RGB and saves as PNG
 
 2. **Local File** (`process_image`):

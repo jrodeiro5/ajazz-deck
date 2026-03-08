@@ -1,7 +1,7 @@
 [project]
 name = "ajazz-deck"
 version = "0.1.0"
-description = "Linux daemon + CLI for the AJAZZ AK820 macro pad with MCP integration"
+description = "Linux daemon + CLI for the AJAZZ AKP153 macro pad with MCP integration"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [

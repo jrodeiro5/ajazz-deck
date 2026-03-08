@@ -59,7 +59,7 @@ build system
 
 - **Production-ready daemon** with reliable logging and automatic reconnection
 - **Comprehensive CLI** with rich formatting and AJAZZ branding
-- **udev autostart system** for automatic daemon startup when AK820 is connected
+- **udev autostart system** for automatic daemon startup when AKP153 is connected
 - **systemd user services** for reliable daemon management
 - **WSL setup guide** with usbipd integration instructions
 - **Automated installation scripts** for Linux udev rules
@@ -128,10 +128,10 @@ sudo ./install/udev/install.sh
 ### v0.0.1 Added
 
 - **Initial daemon implementation** with basic device communication
-- **AJAZZ AK820 support** for macro pad functionality
+- **AJAZZ AKP153 support** for macro pad functionality
 - **YAML-based configuration system** for button mappings
 - **Basic CLI commands** for daemon control
-- **Device detection** for AJAZZ AK820 (AKP153E) macro pad
+- **Device detection** for AJAZZ AKP153 (AKP153E) macro pad
 - **Logging system** with file rotation
 - **Process management** with PID file handling
 

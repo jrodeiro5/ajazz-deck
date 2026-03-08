@@ -13,12 +13,12 @@
 
 ### Why Vendored?
 
-The StreamDock SDK is **not published on PyPI** and has **no versioned releases** on GitHub. It is required for HID device communication with the AJAZZ AK820 macro pad (VID `0x0300` / PID `0x3010`).
+The StreamDock SDK is **not published on PyPI** and has **no versioned releases** on GitHub. It is required for HID device communication with the AJAZZ AKP153 macro pad (VID `0x0300` / PID `0x3010`).
 
 Vendoring ensures:
 - ✓ Reproducible builds (no dependency on GitHub API or release availability)
 - ✓ Offline operation
-- ✓ Stable support for the AK820 device
+- ✓ Stable support for the AKP153 device
 - ✓ Clear attribution via `vendor/LICENSE` (MIT compliance)
 
 ### Modifications

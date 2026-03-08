@@ -1,6 +1,6 @@
 # ajazz-deck
 
-Linux daemon + CLI for the AJAZZ AK820 macro pad.
+Linux daemon + CLI for the AJAZZ AKP153 macro pad.
 Assign shell commands to physical buttons via a simple YAML config.
 
 ## Requirements
@@ -8,7 +8,7 @@ Assign shell commands to physical buttons via a simple YAML config.
 - Linux (Ubuntu/Debian recommended) or WSL2 with usbipd
 - Python 3.12+
 - [uv](https://docs.astral.sh/uv/) package manager
-- AJAZZ AK820 connected via USB
+- AJAZZ AKP153 connected via USB
 
 ## Quick Start
 
@@ -27,7 +27,7 @@ nano buttons.yaml   # edit with your commands
 # 4. Start the daemon
 ajazz daemon start
 
-# 5. Press a button on your AK820 — it runs your command
+# 5. Press a button on your AKP153 — it runs your command
 ```
 
 ## Autostart on Device Connect
@@ -36,7 +36,7 @@ ajazz daemon start
 
 ```bash
 sudo ./install/udev/install.sh
-# Unplug and replug AK820 — daemon starts automatically
+# Unplug and replug AKP153 — daemon starts automatically
 ```
 
 ### WSL (Windows Subsystem for Linux)
@@ -90,7 +90,7 @@ ajazz device status                     # Show device connection status
 
 ## Image Support
 
-Set custom button icons on the AK820 display — from image URLs, local files,
+Set custom button icons on the AKP153 display — from image URLs, local files,
 or AI-generated with Gemini.
 
 ### Setup
@@ -153,7 +153,7 @@ details, architecture changes, and development notes.
 
 ## MCP Server (Claude Code Integration)
 
-Control the AK820 macro pad programmatically from Claude Code, Windsurf, or Zed.
+Control the AKP153 macro pad programmatically from Claude Code, Windsurf, or Zed.
 
 ### MCP Setup
 
@@ -234,7 +234,7 @@ LOG_LEVEL=DEBUG ajazz daemon start   # verbose mode
 
 ### Device not found
 
-- Ensure AK820 is connected via USB
+- Ensure AKP153 is connected via USB
 - Check `ajazz device status` for device information
 - On Linux, verify user is in the `input` group: `sudo usermod -a -G input $USER`
 

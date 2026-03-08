@@ -48,7 +48,7 @@ ButtonConfig(**user_config)
 
 ### Device Security
 
-- Access is limited to device VID:PID `0300:3010` (AJAZZ AK820 only)
+- Access is limited to device VID:PID `0300:3010` (AJAZZ AKP153 only)
 - No network communication with external services (except image downloads and Gemini API)
 - All button commands run with user's own privileges (no privilege escalation)
 

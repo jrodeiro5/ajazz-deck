@@ -84,7 +84,7 @@ from .Devices.StreamDockM3 import StreamDockM3
 from .Devices.K1Pro import K1Pro
 
 g_products = [
-    # AJAZZ AK820 / Mirabox HSV293S (VID=0x0300, PID=0x3010, "HOTSPOTEKUSB HID DEMO")
+    # AJAZZ AKP153 / Mirabox HSV293S (VID=0x0300, PID=0x3010, "HOTSPOTEKUSB HID DEMO")
     (0x0300, 0x3010, _StreamDock293s_AJAZZ),
     # 293 serial
     (USBVendorIDs.USB_VID_293, USBProductIDs.USB_PID_STREAMDOCK_293, StreamDock293),

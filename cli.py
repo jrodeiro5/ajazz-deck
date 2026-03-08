@@ -89,7 +89,7 @@ def get_daemon_status():
 @click.group(invoke_without_command=True)
 @click.pass_context
 def cli(ctx):
-    """AJAZZ AK820 Macro Pad Controller"""
+    """AJAZZ AKP153 Macro Pad Controller"""
     if ctx.invoked_subcommand is None:
         _show_welcome()
 
