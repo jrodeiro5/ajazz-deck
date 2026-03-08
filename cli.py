@@ -31,8 +31,13 @@ AJAZZ_BANNER = r"""
   / _ \  _  | | / _ \     /  /      /  /
  / ___ \| |_| |/ ___ \   /  /_     /  /_
 /_/   \_\\___//_/   \_\ /_____|   /_____|
+ ____  _____  ____  _  __
+|  _ \| ____||  __|| |/ /
+| | | |  _|  | |   |  <
+| |_| | |___ | |__ | . \
+|____/|_____||____||_|\_\
 """
-AJAZZ_SUBTITLE = "  [ OFFICIAL STORE ]"
+AJAZZ_SUBTITLE = "  [ AJazz AKP153 Macro Pad Controller ]"
 AJAZZ_DIVIDER = "=" * 42
 
 
@@ -562,15 +567,6 @@ def show_image(button_id):
         console.print(f"[cyan]Button {button_id} image:[/cyan] {image_path}")
     else:
         console.print(f"[yellow]Button {button_id} has no image[/yellow]")
-
-
-@cli.command()
-def device_status():
-    """Show device connection status."""
-    console.print("[cyan]Device status: Checking...[/cyan]")
-    console.print(
-        "[yellow]Note: This requires the AJAZZ device to be connected[/yellow]"
-    )
 
 
 @cli.command()
