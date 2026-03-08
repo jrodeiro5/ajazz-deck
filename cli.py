@@ -21,6 +21,7 @@ from image_engine import process_image
 PROJECT_DIR = Path(__file__).parent.resolve()
 PID_FILE = PROJECT_DIR / "deck.pid"
 CONFIG_FILE = Path(os.getenv("AJAZZ_CONFIG", PROJECT_DIR / "buttons.yaml"))
+LOG_FILE = PROJECT_DIR / "deck.log"
 
 console = Console()
 
@@ -42,10 +43,10 @@ def _show_welcome():
     console.print()
     tips = (
         "[bold]Tips for getting started:[/bold]\n"
-        "1. [#E53935]ajazz daemon start[/#E53935]     → Start the button daemon\n"
-        "2. [#E53935]ajazz button list[/#E53935]      → Show configured buttons\n"
-        "3. [#E53935]ajazz config validate[/#E53935]  → Check buttons.yaml\n"
-        "4. [#E53935]ajazz --help[/#E53935]           → Full command reference"
+        "1. [#E53935]ajazz daemon start[/#E53935]                                 → Start daemon\n"
+        "2. [#E53935]ajazz button set 1 --label 'Term' --command 'xterm'         → Configure button[/#E53935]\n"
+        "3. [#E53935]ajazz button list[/#E53935]                                  → Show buttons\n"
+        "4. [#E53935]ajazz --help[/#E53935]                                       → Full reference"
     )
     console.print(Panel(tips, border_style="#E53935", padding=(0, 2)))
     console.print()
@@ -236,6 +237,132 @@ def test(button_id):
 
     console.print(f"[cyan]Testing button {button_id}...[/cyan]")
     console.print(f"Command: [blue]{command[:100]}[/blue]")
+
+
+@button.command()
+@click.argument("button_id", type=int)
+@click.option("--label", required=True, help="Display label for the button")
+@click.option("--command", required=True, help="Shell command to execute")
+@click.option(
+    "--type",
+    "button_type",
+    type=click.Choice(["shell", "clipboard", "script"]),
+    default="shell",
+    help="Execution mode (default: shell)",
+)
+@click.option("--icon", help="Optional path to .png icon file")
+def set(button_id, label, command, button_type, icon):
+    """Add or update a button in buttons.yaml."""
+    if not 1 <= button_id <= 15:
+        console.print(f"[red]Error: button_id must be 1–15, got {button_id}[/red]")
+        sys.exit(1)
+
+    # Read or initialize config
+    config = {"buttons": {}}
+    if CONFIG_FILE.exists():
+        try:
+            with open(CONFIG_FILE) as f:
+                config = yaml.safe_load(f) or {"buttons": {}}
+        except Exception as e:
+            console.print(f"[red]Error reading config: {e}[/red]")
+            sys.exit(1)
+
+    # Build button entry
+    if button_type in ("script", "clipboard"):
+        entry = {"label": label, "script": command, "type": button_type}
+    else:
+        entry = {"label": label, "command": command, "type": button_type}
+
+    if icon:
+        entry["image"] = icon
+
+    # Validate with Pydantic
+    try:
+        from config_models import ButtonConfig
+
+        ButtonConfig(**entry)
+    except Exception as e:
+        console.print(f"[red]Error: Invalid button configuration: {e}[/red]")
+        sys.exit(1)
+
+    # Update config
+    config.setdefault("buttons", {})[button_id] = entry
+
+    # Write config
+    try:
+        with open(CONFIG_FILE, "w") as f:
+            yaml.dump(config, f, default_flow_style=False, allow_unicode=True)
+        console.print(
+            f"[green]✓ Button {button_id} configured[/green]: {label} → {command}"
+        )
+    except Exception as e:
+        console.print(f"[red]Error writing config: {e}[/red]")
+        sys.exit(1)
+
+    # Restart daemon if running
+    status = get_daemon_status()
+    if "running" in status:
+        console.print("[cyan]Restarting daemon to apply changes...[/cyan]")
+        subprocess.run(
+            ["python3", str(PROJECT_DIR / "cli.py"), "daemon", "restart"],
+            cwd=PROJECT_DIR,
+            capture_output=True,
+        )
+        console.print("[green]✓ Daemon restarted[/green]")
+    else:
+        console.print(
+            "[yellow]Daemon not running. Start with: ajazz daemon start[/yellow]"
+        )
+
+
+@button.command()
+@click.argument("button_id", type=int)
+def remove(button_id):
+    """Remove a button from buttons.yaml."""
+    if not 1 <= button_id <= 15:
+        console.print(f"[red]Error: button_id must be 1–15, got {button_id}[/red]")
+        sys.exit(1)
+
+    if not CONFIG_FILE.exists():
+        console.print(
+            "[red]buttons.yaml not found. No button to remove.[/red]"
+        )
+        sys.exit(1)
+
+    try:
+        with open(CONFIG_FILE) as f:
+            config = yaml.safe_load(f) or {"buttons": {}}
+    except Exception as e:
+        console.print(f"[red]Error reading config: {e}[/red]")
+        sys.exit(1)
+
+    buttons = config.get("buttons", {})
+    if button_id not in buttons:
+        console.print(f"[red]Error: Button {button_id} is not configured[/red]")
+        sys.exit(1)
+
+    # Remove button
+    del buttons[button_id]
+
+    # Write config
+    try:
+        with open(CONFIG_FILE, "w") as f:
+            yaml.dump(config, f, default_flow_style=False, allow_unicode=True)
+        console.print(f"[green]✓ Button {button_id} removed[/green]")
+    except Exception as e:
+        console.print(f"[red]Error writing config: {e}[/red]")
+        sys.exit(1)
+
+    # Restart daemon if running
+    status = get_daemon_status()
+    if "running" in status:
+        console.print("[cyan]Restarting daemon to apply changes...[/cyan]")
+        subprocess.run(
+            ["python3", str(PROJECT_DIR / "cli.py"), "daemon", "restart"],
+            cwd=PROJECT_DIR,
+            capture_output=True,
+        )
+        console.print("[green]✓ Daemon restarted[/green]")
 
 
 @cli.group()
@@ -444,6 +571,41 @@ def device_status():
     console.print(
         "[yellow]Note: This requires the AJAZZ device to be connected[/yellow]"
     )
+
+
+@cli.command()
+@click.option(
+    "--lines", "-n", type=int, default=20, help="Number of log lines to show (default: 20)"
+)
+def logs(lines):
+    """Show last N lines from daemon log file."""
+    if not LOG_FILE.exists():
+        console.print(
+            "[yellow]Log file not found. Start daemon with: ajazz daemon start[/yellow]"
+        )
+        return
+
+    try:
+        log_content = LOG_FILE.read_text()
+        log_lines = log_content.strip().split("\n")
+
+        # Get last N lines
+        last_lines = log_lines[-lines:] if len(log_lines) > lines else log_lines
+
+        if not last_lines:
+            console.print("[yellow]Log file is empty[/yellow]")
+            return
+
+        console.print(
+            Panel(
+                "\n".join(last_lines),
+                title=f"Daemon Log (last {len(last_lines)} lines)",
+                border_style="cyan",
+            )
+        )
+    except Exception as e:
+        console.print(f"[red]Error reading log file: {e}[/red]")
+        sys.exit(1)
 
 
 if __name__ == "__main__":
