@@ -62,8 +62,11 @@ Timeouts: 5s (safe mode), 10s (shell mode)
 
 ### Key Modules
 
-- **deck.py**: Main daemon (config, device management, execution)
-- **cli.py**: CLI interface (daemon control, info display)
+- **deck.py**: Main daemon (config, device management, execution, logging)
+- **cli.py**: CLI interface (daemon control, button config, image management, logs)
+- **mcp_server.py**: FastMCP server for Claude Code/Windsurf/Zed integration
+- **config_models.py**: Pydantic models for button and app configuration validation
+- **image_engine.py**: Image processing (URL download, local file, Gemini AI generation)
 - **raw_hid.py**: HID debugging tool (direct `/dev/hidraw` communication)
 
 ## Development & Deployment
@@ -88,13 +91,35 @@ AJAZZ_CONFIG=/path/to/buttons.yaml python deck.py
 
 ### CLI Commands
 
+**Daemon Management:**
 ```bash
-ajazz daemon start|stop|restart|status  # Daemon control
-ajazz button list                       # Show all buttons
+ajazz daemon start|stop|restart|status
+ajazz logs [--lines N]                  # Show last N lines from deck.log (default: 20)
+```
+
+**Button Configuration:**
+```bash
+ajazz button list                       # Show all configured buttons
 ajazz button show <id>                  # Show button details
+ajazz button set <id> --label TEXT --command TEXT [--type shell|clipboard|script] [--icon PATH]
+ajazz button remove <id>                # Remove button from configuration
 ajazz button test <id>                  # Test button execution
-ajazz config show|validate              # Config management
-ajazz device status                     # Show device info
+```
+
+**Button Images:**
+```bash
+ajazz image set <id> --url URL          # Set image from URL (auto-resizes to 96×96)
+ajazz image set <id> --file PATH        # Set image from local file
+ajazz image set <id> --generate PROMPT  # Generate image with Gemini (requires GOOGLE_API_KEY)
+ajazz image show <id>                   # Show button's current image path
+ajazz image clear <id>                  # Remove image from button
+```
+
+**Configuration & Status:**
+```bash
+ajazz config show                       # Display button configuration
+ajazz config validate                   # Validate buttons.yaml syntax
+ajazz device-status                     # Show device connection status
 ```
 
 ### Debugging
@@ -152,12 +177,35 @@ python3 cli.py daemon start
 
 See `install/wsl/README-WSL.md` for full setup.
 
+## Image Generation
+
+**image_engine.py** handles three image sources:
+
+1. **URL Download** (`download_from_url`):
+   - Downloads image from HTTP/HTTPS URL
+   - Auto-resizes to 96×96 px (AK820 native format)
+   - Converts to RGB and saves as PNG
+
+2. **Local File** (`process_image`):
+   - Loads image from local file path
+   - Same resize and format conversion
+
+3. **AI Generation** (`generate_from_prompt`):
+   - Uses Google Gemini 3.1 Flash Image Preview model
+   - Requires `GOOGLE_API_KEY` environment variable
+   - Generates 96×96 px image directly from text prompt
+
+All processed images saved to `icons/{button_id}.png`.
+
 ## Configuration & Environment
 
 ### Environment Variables
 
 - `AJAZZ_CONFIG`: Path to button config (default: `./buttons.yaml`)
 - `LOG_LEVEL`: Logging verbosity (default: `INFO`)
+- `GOOGLE_API_KEY`: Google Gemini API key for AI image generation (optional)
+  - Get free key at https://aistudio.google.com/apikey
+  - Store in `.env` file (see `.env.example`)
 
 ### Important Paths
 
@@ -169,7 +217,7 @@ See `install/wsl/README-WSL.md` for full setup.
 
 ## Dependencies
 
-From `pyproject.toml`:
+### Core (`pyproject.toml`)
 
 - `click>=8.3.1`: CLI framework
 - `hid>=1.0.9`: HID protocol
@@ -177,7 +225,16 @@ From `pyproject.toml`:
 - `pillow>=12.1.1`: Image processing
 - `pyudev>=0.24.4`: Device enumeration
 - `pyyaml>=6.0.3`: Config parsing
-- `rich>=14.4.0`: Terminal formatting
+- `rich>=14.3.3`: Terminal formatting
+- `pydantic>=2.0.0`: Configuration validation
+- `fastmcp>=2.3.0`: MCP server for Claude/Windsurf/Zed
+- `google-genai>=1.0`: Gemini API for AI image generation
+- `httpx>=0.27`: HTTP client for image downloads
+- `python-dotenv>=1.0`: Environment variable loading
+
+### Dev (`tool.uv.optional-dependencies.dev`)
+
+- `ruff>=0.1.0`: Linting and code formatting
 
 ## SDK Integration
 
@@ -190,6 +247,22 @@ Mirabox StreamDock SDK (git submodule in `sdk/`):
 SDK path injected at startup: `deck.py:8`
 
 Clone with: `git clone --recursive`
+
+## MCP Server Integration
+
+**mcp_server.py** provides FastMCP server for Claude Code, Windsurf, and Zed integration.
+
+Available MCP tools (exposed as Claude tools):
+- `list_buttons()` — List all configured buttons
+- `set_button(id, label, command, type, icon)` — Configure button
+- `remove_button(id)` — Delete button
+- `daemon_status()` — Check daemon running status
+- `daemon_start()` / `daemon_stop()` — Control daemon
+- `set_button_image_from_url(id, url)` — Set button icon from URL
+- `set_button_image_from_prompt(id, prompt)` — Generate button icon with AI
+- `clear_button_image(id)` — Remove button icon
+
+Run server: `uv run ajazz-mcp` (or `uv run mcp_server.py` directly)
 
 ## Command Execution Safety
 
@@ -206,13 +279,55 @@ arbitrary code
 
 Align branches before release: merge master → main or switch default.
 
+## Code Quality & Linting
+
+**Ruff** handles linting and formatting:
+
+```bash
+# Check for style issues
+uv run ruff check .
+
+# Auto-fix issues
+uv run ruff check --fix .
+
+# Format code
+uv run ruff format .
+
+# CI runs both: ruff check . && ruff format --check .
+```
+
+Configuration in `pyproject.toml`:
+- Line length: 88 characters
+- Target: Python 3.12+
+- Rules: E, W, F, I, N, UP, B, C4, TCH (see `[tool.ruff.lint]`)
+- Per-file: `deck.py` allows E402 (late imports after sys.path modification)
+
+## Build System & Package Installation
+
+Uses Hatchling with flat project structure configuration:
+
+```toml
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.uv]
+package = true
+
+[tool.hatch.build.targets.wheel]
+only-packages = false
+include = ["/cli.py", "/deck.py", "/mcp_server.py", "/config_models.py", "/image_engine.py", "/raw_hid.py"]
+```
+
+Result: `uv sync` builds the package and installs `ajazz` and `ajazz-mcp` entry points.
+
 ## Development Notes
 
-- **No test framework** yet — consider pytest when adding tests
-- **Single-instance enforcement**: Check `deck.pid` before starting; remove manually
-  if crash without cleanup
-- **Device auto-reconnect**: Device hotplug
-reloads config (see `_reconnect_event` in deck.py)
-- **WSL networking**: udev not available; use usbipd + Task Scheduler
-for autostart
+- **No test framework yet** — consider pytest when adding tests
+- **Single-instance enforcement**: Check `deck.pid` before starting; remove manually if crash without cleanup
+- **Device auto-reconnect**: Device hotplug reloads config (see `_reconnect_event` in deck.py)
+- **WSL networking**: udev not available; use usbipd + Task Scheduler for autostart
 - **Platform-specific**: Clipboard uses `/mnt/c/Windows/System32/clip.exe` on WSL
+- **Config validation**: `config_models.py` uses Pydantic with custom validators
+  - `ButtonConfig`: Single button validation
+  - `AjazzConfig`: Full configuration with button dict
