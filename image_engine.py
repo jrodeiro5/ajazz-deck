@@ -69,7 +69,7 @@ def generate_from_prompt(prompt: str, button_id: int) -> str:
     client = genai.Client(api_key=api_key)
 
     response = client.models.generate_content(
-        model="gemini-2.0-flash-preview-image-generation",
+        model="gemini-3.1-flash-image-preview",
         contents=prompt,
         config=genai.types.GenerateContentConfig(
             response_modalities=["IMAGE"],
