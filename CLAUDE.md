@@ -19,6 +19,39 @@ when buttons are pressed.
 - CLI entry point: `ajazz` command (defined in `pyproject.toml`)
 - Auto-starts on device connect via udev (Linux) or Task Scheduler (WSL)
 
+## Security Rules
+
+**Critical — must follow these rules when working with this repository:**
+
+- **Never access credential files directly** — Do not read, extract, or display:
+  - `~/.config/gh/hosts.yml` (GitHub CLI tokens)
+  - `~/.netrc` (authentication credentials)
+  - `~/.ssh/` (private keys)
+  - `.env` files with API keys or secrets
+  - `~/.git-credentials`
+
+- **Never extract or use OAuth tokens, API keys, or passwords** — Even if found in environment variables or config files, do not use them directly in git commands. Always ask the user to authenticate manually.
+
+- **If push/auth fails** — Stop immediately and tell the user:
+  ```bash
+  gh auth login
+  # or
+  git push origin main
+  ```
+  Do NOT attempt to work around auth failures by embedding credentials in URLs.
+
+- **Never embed credentials in URLs** — Do not construct URLs like:
+  ```bash
+  # ❌ WRONG
+  git push https://user:token@github.com/repo.git
+  ```
+
+- **Always ask for permission** before:
+  - Accessing files outside the project directory
+  - Reading configuration or credential files
+  - Making changes that affect git history or branches
+  - Pushing to remote repositories
+
 ## Architecture
 
 ### Core Application Flow
@@ -274,15 +307,10 @@ arbitrary code
 
 ## Git Workflow
 
-- **master**: Development branch (current)
-- **main**: Primary branch (for PRs)
+- **main**: Primary development branch (default)
+- No secondary branch — all work happens on `main`
 
-Align branches before release: merge master → main or switch default.
-
-> **TODO (post-v0.2.0)**: Rename branches to modern GitHub standards:
-> - `main` → primary/default branch (development)
-> - `master` → deprecated or used as stable release branch
-> See: https://github.com/github/renaming
+All commits go to `main`. Tag releases with version numbers (e.g., `v0.2.0`).
 
 ## Code Quality & Linting
 
