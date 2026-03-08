@@ -1,17 +1,21 @@
 #!/usr/bin/env python3
 """Simple AJAZZ CLI implementation."""
 
-import sys
 import os
+import subprocess
+import sys
 import time
 from pathlib import Path
-import subprocess
+
 import click
 import yaml
 from rich.console import Console
+from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
-from rich.panel import Panel
+
+from config_models import AjazzConfig
+from image_engine import process_image
 
 # Paths
 PROJECT_DIR = Path(__file__).parent.resolve()
@@ -28,7 +32,7 @@ AJAZZ_BANNER = r"""
 /_/   \_\\___//_/   \_\ /_____|   /_____|
 """
 AJAZZ_SUBTITLE = "  [ OFFICIAL STORE ]"
-AJAZZ_DIVIDER  = "=" * 42
+AJAZZ_DIVIDER = "=" * 42
 
 
 def _show_welcome():
@@ -50,9 +54,10 @@ def _show_welcome():
 def read_config():
     """Read and parse buttons.yaml configuration."""
     try:
-        with open(CONFIG_FILE, "r") as f:
-            config = yaml.safe_load(f)
-            return config.get("buttons", {})
+        with open(CONFIG_FILE) as f:
+            config_data = yaml.safe_load(f)
+            config = AjazzConfig(**config_data)
+            return {k: v.model_dump() for k, v in config.buttons.items()}
     except FileNotFoundError:
         console.print(
             "[red]buttons.yaml not found.[/red] "
@@ -60,7 +65,10 @@ def read_config():
         )
         sys.exit(1)
     except yaml.YAMLError as e:
-        console.print(f"[red]Error parsing config: {e}[/red]")
+        console.print(f"[red]Error parsing YAML: {e}[/red]")
+        sys.exit(1)
+    except Exception as e:
+        console.print(f"[red]Configuration error: {e}[/red]")
         sys.exit(1)
 
 
@@ -68,7 +76,7 @@ def get_daemon_status():
     """Check if daemon is running via PID file."""
     if not PID_FILE.exists():
         return "stopped"
-    
+
     try:
         pid = int(PID_FILE.read_text().strip())
         os.kill(pid, 0)
@@ -102,7 +110,7 @@ def daemon(action):
                 cwd=PROJECT_DIR,
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL,
-                start_new_session=True
+                start_new_session=True,
             )
             time.sleep(0.5)  # Let subprocess fully start and write its own PID
             PID_FILE.write_text(str(proc.pid))
@@ -141,7 +149,7 @@ def daemon(action):
                 cwd=PROJECT_DIR,
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL,
-                start_new_session=True
+                start_new_session=True,
             )
             PID_FILE.write_text(str(proc.pid))
             console.print(f"[green]Daemon restarted (PID {proc.pid})[/green]")
@@ -164,6 +172,7 @@ def list(json_output):
 
     if json_output:
         import json
+
         console.print(json.dumps(buttons, indent=2))
         return
 
@@ -236,7 +245,7 @@ def config():
 
 
 @config.command()
-def show():
+def show_all():
     """Display current button configuration."""
     buttons = read_config()
 
@@ -263,27 +272,178 @@ def show():
 
 @config.command()
 def validate():
-    """Validate buttons.yaml syntax."""
+    """Validate buttons.yaml syntax and structure."""
     try:
-        with open(CONFIG_FILE, "r") as f:
-            yaml.safe_load(f)
-        console.print("[green]✓ Configuration syntax is valid[/green]")
-    except yaml.YAMLError as e:
-        console.print(f"[red]✗ Configuration error: {e}[/red]")
-        sys.exit(1)
+        with open(CONFIG_FILE) as f:
+            config_data = yaml.safe_load(f)
+            AjazzConfig(**config_data)
+        console.print("[green]✓ Configuration is valid[/green]")
     except FileNotFoundError:
         console.print(
             "[red]✗ buttons.yaml not found.[/red] "
             "Run: [bold]cp buttons.example.yaml buttons.yaml[/bold]"
         )
         sys.exit(1)
+    except yaml.YAMLError as e:
+        console.print(f"[red]✗ YAML syntax error: {e}[/red]")
+        sys.exit(1)
+    except Exception as e:
+        console.print(f"[red]✗ Configuration error: {e}[/red]")
+        sys.exit(1)
+
+
+@cli.group()
+def image():
+    """Button image management commands."""
+    pass
+
+
+@image.command()
+@click.argument("button_id", type=int)
+@click.option("--url", help="Download image from URL")
+@click.option("--file", "file_path", help="Use local image file")
+@click.option(
+    "--generate", help="Generate image from text prompt (requires GOOGLE_API_KEY)"
+)
+def set(button_id, url, file_path, generate):
+    """Set button image from URL, local file, or AI-generated prompt."""
+    if not 1 <= button_id <= 15:
+        console.print(f"[red]Error: button_id must be 1–15, got {button_id}[/red]")
+        sys.exit(1)
+
+    # Validate that exactly one source is provided
+    sources = sum([bool(url), bool(file_path), bool(generate)])
+    if sources != 1:
+        console.print(
+            "[red]Error: Provide exactly one source: --url, --file, or --generate[/red]"
+        )
+        sys.exit(1)
+
+    # Determine source and process image
+    try:
+        if url:
+            console.print(f"[cyan]Downloading image from {url}...[/cyan]")
+            source = url
+        elif file_path:
+            console.print(f"[cyan]Loading image from {file_path}...[/cyan]")
+            source = file_path
+        else:  # generate
+            console.print(f"[cyan]Generating image: '{generate}'...[/cyan]")
+            source = f"generate:{generate}"
+
+        image_path = process_image(source, button_id)
+        console.print(f"[green]✓ Image processed: {image_path}[/green]")
+
+        # Update buttons.yaml with image path
+        config = {"buttons": {}}
+        if CONFIG_FILE.exists():
+            with open(CONFIG_FILE) as f:
+                config = yaml.safe_load(f) or {"buttons": {}}
+
+        if button_id not in config.get("buttons", {}):
+            console.print(
+                f"[yellow]Warning: Button {button_id} not configured. "
+                "Image saved but button needs to be configured first.[/yellow]"
+            )
+            config.setdefault("buttons", {})[button_id] = {"image": image_path}
+        else:
+            config["buttons"][button_id]["image"] = image_path
+
+        with open(CONFIG_FILE, "w") as f:
+            yaml.dump(config, f, default_flow_style=False, allow_unicode=True)
+        console.print("[green]✓ Updated buttons.yaml[/green]")
+
+        # Restart daemon if running
+        status = get_daemon_status()
+        if "running" in status:
+            console.print("[cyan]Restarting daemon to apply image...[/cyan]")
+            subprocess.run(
+                ["python3", str(PROJECT_DIR / "cli.py"), "daemon", "restart"],
+                cwd=PROJECT_DIR,
+                capture_output=True,
+            )
+            console.print("[green]✓ Daemon restarted[/green]")
+        else:
+            console.print(
+                "[yellow]Daemon not running. Start with: ajazz daemon start[/yellow]"
+            )
+
+    except ValueError as e:
+        console.print(f"[red]Error: {e}[/red]")
+        sys.exit(1)
+    except Exception as e:
+        console.print(f"[red]Error processing image: {e}[/red]")
+        sys.exit(1)
+
+
+@image.command()
+@click.argument("button_id", type=int)
+def clear(button_id):
+    """Remove image from button."""
+    if not 1 <= button_id <= 15:
+        console.print(f"[red]Error: button_id must be 1–15, got {button_id}[/red]")
+        sys.exit(1)
+
+    if not CONFIG_FILE.exists():
+        console.print("[yellow]buttons.yaml not found[/yellow]")
+        return
+
+    config = yaml.safe_load(CONFIG_FILE.read_text()) or {"buttons": {}}
+    if button_id not in config.get("buttons", {}):
+        console.print(f"[yellow]Button {button_id} not configured[/yellow]")
+        return
+
+    button_config = config["buttons"][button_id]
+    if "image" not in button_config:
+        console.print(f"[yellow]Button {button_id} has no image[/yellow]")
+        return
+
+    del button_config["image"]
+    CONFIG_FILE.write_text(
+        yaml.dump(config, default_flow_style=False, allow_unicode=True)
+    )
+    console.print(f"[green]✓ Image removed from button {button_id}[/green]")
+
+    # Restart daemon if running
+    status = get_daemon_status()
+    if "running" in status:
+        console.print("[cyan]Restarting daemon...[/cyan]")
+        subprocess.run(
+            ["python3", str(PROJECT_DIR / "cli.py"), "daemon", "restart"],
+            cwd=PROJECT_DIR,
+            capture_output=True,
+        )
+        console.print("[green]✓ Daemon restarted[/green]")
+
+
+@image.command()
+@click.argument("button_id", type=int)
+def show_image(button_id):
+    """Show image path for button."""
+    if not 1 <= button_id <= 15:
+        console.print(f"[red]Error: button_id must be 1–15, got {button_id}[/red]")
+        sys.exit(1)
+
+    buttons = read_config()
+    if button_id not in buttons:
+        console.print(f"[yellow]Button {button_id} not configured[/yellow]")
+        return
+
+    button_config = buttons[button_id]
+    image_path = button_config.get("image")
+    if image_path:
+        console.print(f"[cyan]Button {button_id} image:[/cyan] {image_path}")
+    else:
+        console.print(f"[yellow]Button {button_id} has no image[/yellow]")
 
 
 @cli.command()
 def device_status():
     """Show device connection status."""
     console.print("[cyan]Device status: Checking...[/cyan]")
-    console.print("[yellow]Note: This requires the AJAZZ device to be connected[/yellow]")
+    console.print(
+        "[yellow]Note: This requires the AJAZZ device to be connected[/yellow]"
+    )
 
 
 if __name__ == "__main__":

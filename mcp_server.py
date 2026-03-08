@@ -1,12 +1,15 @@
 #!/usr/bin/env python3
 """FastMCP server for AJAZZ AK820 macro pad control."""
 
-from fastmcp import FastMCP
-import yaml
-import subprocess
 import os
+import subprocess
 from pathlib import Path
-from typing import Optional
+
+import yaml
+from fastmcp import FastMCP
+
+from config_models import ButtonConfig
+from image_engine import process_image
 
 # Paths
 PROJECT_DIR = Path(__file__).parent.resolve()
@@ -42,7 +45,7 @@ def _write_config(config: dict) -> None:
     )
 
 
-def _daemon_running() -> tuple[bool, Optional[int]]:
+def _daemon_running() -> tuple[bool, int | None]:
     """Check if daemon is running via PID file."""
     if not PID_FILE.exists():
         return False, None
@@ -88,7 +91,7 @@ def set_button(
     label: str,
     command: str,
     type: str = "shell",
-    icon: Optional[str] = None,
+    icon: str | None = None,
 ) -> str:
     """Configure a physical button on the AK820.
 
@@ -112,7 +115,12 @@ def set_button(
         entry = {"label": label, "command": command, "type": type}
 
     if icon:
-        entry["icon"] = icon
+        entry["image"] = icon
+
+    try:
+        ButtonConfig(**entry)
+    except Exception as e:
+        return f"Error: Invalid button configuration: {e}"
 
     config["buttons"][button_id] = entry
     _write_config(config)
@@ -165,7 +173,9 @@ def daemon_start() -> str:
     if running:
         return f"Daemon already running (PID {pid})."
     if not CONFIG_FILE.exists():
-        return "Error: buttons.yaml not found. Use set_button to configure buttons first."
+        return (
+            "Error: buttons.yaml not found. Use set_button to configure buttons first."
+        )
     return _run_cli("daemon", "start")
 
 
@@ -176,6 +186,121 @@ def daemon_stop() -> str:
     if not running:
         return "Daemon is not running."
     return _run_cli("daemon", "stop")
+
+
+@mcp.tool()
+def set_button_image_from_url(button_id: int, url: str) -> dict:
+    """Download image from URL and set as button icon.
+
+    Args:
+        button_id: Button number (1-15)
+        url: URL to image file
+
+    Returns:
+        Status dict with result and image path
+    """
+    if not 1 <= button_id <= 15:
+        return {"error": f"button_id must be 1–15, got {button_id}"}
+
+    try:
+        image_path = process_image(url, button_id)
+
+        config = _read_config()
+        config.setdefault("buttons", {})
+        if button_id not in config["buttons"]:
+            config["buttons"][button_id] = {"image": image_path}
+        else:
+            config["buttons"][button_id]["image"] = image_path
+        _write_config(config)
+
+        was_running, _ = _daemon_running()
+        if was_running:
+            _run_cli("daemon", "restart")
+
+        return {
+            "status": "success",
+            "button_id": button_id,
+            "image_path": image_path,
+            "daemon_restarted": was_running,
+        }
+    except Exception as e:
+        return {"error": str(e)}
+
+
+@mcp.tool()
+def set_button_image_from_prompt(button_id: int, prompt: str) -> dict:
+    """Generate button icon with Gemini AI from text description.
+
+    Args:
+        button_id: Button number (1-15)
+        prompt: Text description of desired image
+
+    Returns:
+        Status dict with result and image path
+    """
+    if not 1 <= button_id <= 15:
+        return {"error": f"button_id must be 1–15, got {button_id}"}
+
+    try:
+        source = f"generate:{prompt}"
+        image_path = process_image(source, button_id)
+
+        config = _read_config()
+        config.setdefault("buttons", {})
+        if button_id not in config["buttons"]:
+            config["buttons"][button_id] = {"image": image_path}
+        else:
+            config["buttons"][button_id]["image"] = image_path
+        _write_config(config)
+
+        was_running, _ = _daemon_running()
+        if was_running:
+            _run_cli("daemon", "restart")
+
+        return {
+            "status": "success",
+            "button_id": button_id,
+            "image_path": image_path,
+            "daemon_restarted": was_running,
+        }
+    except Exception as e:
+        return {"error": str(e)}
+
+
+@mcp.tool()
+def clear_button_image(button_id: int) -> dict:
+    """Remove image from button.
+
+    Args:
+        button_id: Button number (1-15)
+
+    Returns:
+        Status dict with result
+    """
+    if not 1 <= button_id <= 15:
+        return {"error": f"button_id must be 1–15, got {button_id}"}
+
+    config = _read_config()
+    buttons = config.get("buttons", {})
+
+    if button_id not in buttons:
+        return {"status": "button_not_found", "button_id": button_id}
+
+    if "image" not in buttons[button_id]:
+        return {"status": "no_image", "button_id": button_id}
+
+    del buttons[button_id]["image"]
+    _write_config(config)
+
+    was_running, _ = _daemon_running()
+    if was_running:
+        _run_cli("daemon", "restart")
+
+    return {
+        "status": "success",
+        "button_id": button_id,
+        "daemon_restarted": was_running,
+    }
 
 
 @mcp.tool()

@@ -1,25 +1,26 @@
 #!/usr/bin/env python3
-import sys
 import os
-from pathlib import Path
+import sys
 import threading
+from pathlib import Path
 
 # Add vendored SDK to path
 VENDOR_PATH = Path(__file__).parent / "vendor"
 sys.path.insert(0, str(VENDOR_PATH))
 
-import yaml
+import atexit
+import shlex
 import subprocess
 import time
-from loguru import logger
-import shlex
-import atexit
-from typing import Dict
-import pyudev
 
+import pyudev
+import yaml
+from loguru import logger
 from StreamDock.DeviceManager import DeviceManager
 from StreamDock.Devices.StreamDock import StreamDock
 from StreamDock.InputTypes import EventType
+
+from config_models import ButtonConfig
 
 # Paths
 PROJECT_DIR = Path(__file__).parent
@@ -35,14 +36,14 @@ logger.remove()
 logger.add(
     sys.stderr,
     level=os.getenv("LOG_LEVEL", "INFO"),
-    format="{time:YYYY-MM-DD HH:mm:ss} [{level}] {message}"
+    format="{time:YYYY-MM-DD HH:mm:ss} [{level}] {message}",
 )
 logger.add(
     str(LOG_FILE),
     rotation="10 MB",
     retention="7 days",
     level=os.getenv("LOG_LEVEL", "INFO"),
-    format="{time:YYYY-MM-DD HH:mm:ss} [{level}] {message}"
+    format="{time:YYYY-MM-DD HH:mm:ss} [{level}] {message}",
 )
 
 # Global reconnect event for udev hotplug
@@ -69,7 +70,8 @@ def check_single_instance() -> None:
 
 check_single_instance()
 
-def load_config(config_file: str | Path = CONFIG_FILE) -> Dict[int, dict]:
+
+def load_config(config_file: str | Path = CONFIG_FILE) -> dict[int, dict]:
     """Load button mappings from YAML config.
 
     Supports both simple command strings and complex button objects:
@@ -78,7 +80,7 @@ def load_config(config_file: str | Path = CONFIG_FILE) -> Dict[int, dict]:
     """
     config_path = Path(config_file)
     try:
-        with open(config_path, "r") as f:
+        with open(config_path) as f:
             config = yaml.safe_load(f)
         buttons = config.get("buttons", {})
 
@@ -89,10 +91,17 @@ def load_config(config_file: str | Path = CONFIG_FILE) -> Dict[int, dict]:
                 # Legacy format: convert string to dict
                 normalized[button_id] = {"command": button_data, "type": "shell"}
             elif isinstance(button_data, dict):
-                # New format: already a dict
                 normalized[button_id] = button_data
             else:
                 logger.warning(f"Button {button_id} has invalid format: {button_data}")
+
+        # Validate each button with Pydantic
+        for button_id, button_data in normalized.items():
+            try:
+                ButtonConfig(**button_data)
+            except Exception as e:
+                logger.error(f"Invalid config for button {button_id}: {e}")
+                sys.exit(1)
 
         return normalized
     except FileNotFoundError:
@@ -103,6 +112,7 @@ def load_config(config_file: str | Path = CONFIG_FILE) -> Dict[int, dict]:
     except yaml.YAMLError as e:
         logger.error(f"Error parsing {config_path}: {e}")
         sys.exit(1)
+
 
 def find_device() -> StreamDock:
     """Find and open AJAZZ via the Mirabox StreamDock SDK."""
@@ -118,6 +128,7 @@ def find_device() -> StreamDock:
     logger.info(f"Connected to {device.path} (firmware: {device.firmware_version})")
     return device
 
+
 def connect_with_retry() -> StreamDock:
     """Connect to device with exponential backoff retry."""
     attempt = 0
@@ -125,42 +136,90 @@ def connect_with_retry() -> StreamDock:
         try:
             return find_device()
         except Exception as e:
-            wait = min(2 ** attempt, 60)
-            logger.warning("Device not found (attempt {a}): {e}. Retry in {w}s",
-                           a=attempt + 1, e=e, w=wait)
+            wait = min(2**attempt, 60)
+            logger.warning(
+                "Device not found (attempt {a}): {e}. Retry in {w}s",
+                a=attempt + 1,
+                e=e,
+                w=wait,
+            )
             time.sleep(wait)
             attempt += 1
+
 
 def usbipd_status() -> str:
     """Check usbipd attachment status for AJAZZ device."""
     try:
-        result = subprocess.run(["usbipd.exe", "list"],
-                                capture_output=True, text=True, timeout=5)
+        result = subprocess.run(
+            ["usbipd.exe", "list"], capture_output=True, text=True, timeout=5
+        )
         for line in result.stdout.splitlines():
             if "0300:3010" in line.lower():
-                return "attached" if "attached" in line.lower() else f"NOT attached — {line.strip()}"
+                return (
+                    "attached"
+                    if "attached" in line.lower()
+                    else f"NOT attached — {line.strip()}"
+                )
         return "VID:PID 0300:3010 not found in usbipd list"
     except FileNotFoundError:
         return "usbipd.exe not found (non-WSL or not installed)"
     except Exception as e:
         return f"check failed: {e}"
 
+
 def start_udev_monitor() -> None:
     """Start udev monitor for hotplug device detection."""
+
     def _watch():
         context = pyudev.Context()
         monitor = pyudev.Monitor.from_netlink(context)
-        monitor.filter_by(subsystem='usb')
+        monitor.filter_by(subsystem="usb")
         for action, device in monitor:
-            if action == 'add':
-                vid = device.get('ID_VENDOR_ID', '')
-                pid = device.get('ID_MODEL_ID', '')
-                if vid == '0300' and pid == '3010':
+            if action == "add":
+                vid = device.get("ID_VENDOR_ID", "")
+                pid = device.get("ID_MODEL_ID", "")
+                if vid == "0300" and pid == "3010":
                     logger.info("udev: AJAZZ device attached — signaling reconnect")
                     _reconnect_event.set()
-    
+
     t = threading.Thread(target=_watch, daemon=True)
     t.start()
+
+
+def apply_button_images(device: StreamDock, buttons: dict) -> None:
+    """Apply configured button images to device.
+
+    Iterates over all buttons with an 'image' path and sends them to the device.
+    Calls device.refresh() once after setting all images.
+
+    Args:
+        device: Connected StreamDock device
+        buttons: Button configuration dict from load_config()
+    """
+    images_applied = 0
+    for button_id, btn_conf in buttons.items():
+        if isinstance(btn_conf, dict) and btn_conf.get("image"):
+            image_path = btn_conf["image"]
+            image_file = Path(image_path)
+            if image_file.exists():
+                try:
+                    device.set_key_image(int(button_id), image_path)
+                    images_applied += 1
+                    logger.debug(f"Set image for button {button_id}: {image_path}")
+                except Exception as e:
+                    logger.warning(f"Failed to set image for button {button_id}: {e}")
+            else:
+                logger.warning(
+                    f"Image file not found for button {button_id}: {image_path}"
+                )
+
+    if images_applied > 0:
+        try:
+            device.refresh()
+            logger.info(f"Applied {images_applied} button images and refreshed display")
+        except Exception as e:
+            logger.warning(f"Failed to refresh display after setting images: {e}")
+
 
 def execute_command(command: str, use_shell: bool = False) -> None:
     """Execute a command with optional shell support.
@@ -172,30 +231,24 @@ def execute_command(command: str, use_shell: bool = False) -> None:
     """
     try:
         start = time.monotonic()
-        
+
         if use_shell:
             # For complex scripts with pipes (e.g., clipboard commands)
             logger.info(f"Executing script (shell): {command[:80]}...")
             result = subprocess.run(
-                ["bash", "-c", command],
-                capture_output=True,
-                text=True,
-                timeout=10
+                ["bash", "-c", command], capture_output=True, text=True, timeout=10
             )
         else:
             # For safety: parse command without shell interpretation
             cmd_parts = shlex.split(command)
             logger.info(f"Executing command (safe): {command}")
             result = subprocess.run(
-                cmd_parts,
-                capture_output=True,
-                text=True,
-                timeout=5
+                cmd_parts, capture_output=True, text=True, timeout=5
             )
 
         elapsed_ms = int((time.monotonic() - start) * 1000)
         logger.info("exit={rc} duration={ms}ms", rc=result.returncode, ms=elapsed_ms)
-        
+
         if result.returncode != 0:
             logger.error(f"Command failed: {command}")
             if result.stderr:
@@ -205,7 +258,7 @@ def execute_command(command: str, use_shell: bool = False) -> None:
             snippet = (out[:200] + "…") if len(out) > 200 else out
             if snippet:
                 logger.debug(f"stdout: {snippet}")
-                
+
     except subprocess.TimeoutExpired:
         logger.error(f"Command timeout: {command}")
     except ValueError as e:
@@ -215,13 +268,19 @@ def execute_command(command: str, use_shell: bool = False) -> None:
     except Exception as e:
         logger.error(f"Error executing command: {e}")
 
-def make_button_callback(buttons: Dict) -> callable:
+
+def make_button_callback(buttons: dict) -> callable:
     """Return a callback for the SDK's set_key_callback."""
+
     def on_key(device, event) -> None:
         # Debug HID event logging
-        logger.debug("HID event: type={t} key={k} state={s}",
-                     t=event.event_type, k=getattr(event.key, 'value', None), s=event.state)
-        
+        logger.debug(
+            "HID event: type={t} key={k} state={s}",
+            t=event.event_type,
+            k=getattr(event.key, "value", None),
+            s=event.state,
+        )
+
         if event.event_type != EventType.BUTTON or event.state != 1:
             return  # only trigger on press, ignore release
 
@@ -257,17 +316,22 @@ def main() -> None:
     logger.info(f"Configured buttons: {list(buttons.keys())}")
 
     device = connect_with_retry()
+    apply_button_images(device, buttons)
     device.set_key_callback(make_button_callback(buttons))
-    
+
     # Startup banner
-    logger.info("ajazz-deck v{ver} | device={fw} | buttons={n}",
-                ver="0.1.0", fw=device.firmware_version, n=len(buttons))
+    logger.info(
+        "ajazz-deck v{ver} | device={fw} | buttons={n}",
+        ver="0.1.0",
+        fw=device.firmware_version,
+        n=len(buttons),
+    )
     usb = usbipd_status()
     if "attached" not in usb:
         logger.warning("usbipd: {s}", s=usb)
     else:
         logger.info("usbipd: {s}", s=usb)
-    
+
     logger.info("Listening for button presses...")
 
     try:
@@ -281,6 +345,7 @@ def main() -> None:
                 except Exception:
                     pass
                 device = connect_with_retry()
+                apply_button_images(device, buttons)
                 device.set_key_callback(make_button_callback(buttons))
                 logger.info("Reconnected successfully")
 
@@ -295,6 +360,7 @@ def main() -> None:
             logger.info("Device closed successfully")
         except Exception as e:
             logger.debug(f"Error closing device: {e}")
+
 
 if __name__ == "__main__":
     main()
