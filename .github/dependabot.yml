@@ -1,3 +1,6 @@
+# Note: vendor/ directory (StreamDock SDK) is manually managed.
+# Dependabot cannot track it. See vendor/VENDOR.md for update instructions.
+
 version: 2
 updates:
   - package-ecosystem: "pip"

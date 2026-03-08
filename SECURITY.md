@@ -71,6 +71,33 @@ This project uses the following security-relevant dependencies:
 
 All dependencies are pinned in `uv.lock` for reproducible installs.
 
+## Third-party Dependencies
+
+### Vendored Dependencies
+
+The `vendor/` directory contains the **StreamDock Python SDK**, which is vendored (not from PyPI) due to lack of official releases.
+
+**Important security note**: The vendored SDK includes **platform-specific precompiled binaries** (`.so`/`.dll`) that cannot be audited by static analysis tools or dependabot.
+
+#### Monitoring for Updates
+
+To check for upstream security updates:
+
+```bash
+# View the currently vendored commit
+grep "Vendored at commit" vendor/VENDOR.md
+
+# Check latest upstream commit
+git ls-remote https://github.com/MiraboxSpace/StreamDock-Device-SDK HEAD
+
+# Watch for security advisories
+# https://github.com/MiraboxSpace/StreamDock-Device-SDK/security
+```
+
+When updating the vendor, test the new binaries on all target platforms (Linux, Windows/WSL) before deploying.
+
+See `vendor/VENDOR.md` for detailed update instructions.
+
 ## Pre-commit Security
 
 Check before committing:

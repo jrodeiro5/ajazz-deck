@@ -189,6 +189,29 @@ print(f'✓ Config valid: {len(cfg.buttons)} buttons')
 - **Issues**: Check existing issues or [create one](https://github.com/jrodeiro5/ajazz-deck/issues)
 - **Discussions**: Ask questions in GitHub Discussions
 
+## Vendored Dependencies
+
+### Why Vendor?
+
+The `vendor/` directory contains the **StreamDock Python SDK**, which is not published on PyPI and has no versioned releases. Vendoring ensures reproducible builds and offline operation.
+
+### Vendor Policy
+
+- **Never modify vendored code directly**. If you need to extend or patch it, create a wrapper layer in project code (e.g., `deck.py`), not in the vendor directory.
+- Vendored code is **pinned to a specific commit** — updates are explicit and tracked in git history.
+- All vendored packages include license files. **MIT compliance is required.**
+
+### Updating a Vendor
+
+1. Clone the upstream repository to a temporary directory
+2. Note the commit SHA
+3. Replace the vendor directory with fresh files
+4. Update the commit SHA in `vendor/VENDOR.md` and `vendor/README.md`
+5. Test on all supported platforms (Linux, Windows/WSL)
+6. Commit with message: `chore(vendor): update <package> to <new-commit-sha>`
+
+For detailed instructions, see `vendor/VENDOR.md`.
+
 ## License
 
 By contributing, you agree that your contributions will be licensed under the same license as the project (see LICENSE).
