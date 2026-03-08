@@ -1,12 +1,16 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to Claude Code (claude.ai/code) when working with code
+in this repository.
 
 ## Project Overview
 
-**AJAZZ Deck** is a Linux daemon + CLI for the AJAZZ AK820 macro pad. It loads button configurations from YAML and executes shell commands or scripts when buttons are pressed.
+**AJAZZ Deck** is a Linux daemon + CLI for the AJAZZ AK820 macro pad.
+It loads button configurations from YAML and executes shell commands or scripts
+when buttons are pressed.
 
 ### Key Characteristics
+
 - Uses **Mirabox StreamDock SDK** (Python-SDK submodule in `sdk/`)
 - Runs as daemon with single-instance enforcement via PID file
 - Supports clipboard integration via WSL Windows integration
@@ -18,7 +22,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Architecture
 
 ### Core Application Flow
+
 **deck.py** (daemon):
+
 1. Logging setup, PID file check (single-instance enforcement)
 2. Load config from `buttons.yaml` (path via `AJAZZ_CONFIG` env var)
 3. Detect AJAZZ device via Mirabox SDK (`StreamDock` class)
@@ -26,18 +32,19 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 5. On press: execute configured command/script with timeout
 
 **cli.py** (CLI interface):
+
 - Manages daemon lifecycle (start/stop/restart/status)
 - Displays button configuration
 - Validates config syntax
 - Shows device status
 
 ### Button Configuration (`buttons.yaml`)
+
 Format supports simple and complex button definitions:
 
 ```yaml
 buttons:
-  1: "simple command"                    # Simple format
-  2:                                     # Complex format
+  1:
     label: "Button Name"
     type: "shell"                        # shell|clipboard|script (default: shell)
     command: "command"                   # For type: shell
@@ -46,6 +53,7 @@ buttons:
 ```
 
 **Execution modes:**
+
 - `shell` (default): Safe via `shlex.split()` — prevents injection
 - `clipboard`: Shell with pipes enabled — for clipboard operations
 - `script`: Full shell — for complex multi-line scripts
@@ -53,6 +61,7 @@ buttons:
 Timeouts: 5s (safe mode), 10s (shell mode)
 
 ### Key Modules
+
 - **deck.py**: Main daemon (config, device management, execution)
 - **cli.py**: CLI interface (daemon control, info display)
 - **raw_hid.py**: HID debugging tool (direct `/dev/hidraw` communication)
@@ -60,12 +69,14 @@ Timeouts: 5s (safe mode), 10s (shell mode)
 ## Development & Deployment
 
 ### Setup
+
 ```bash
 uv sync              # Install dependencies (uses uv.lock)
 uv update            # Update dependencies
 ```
 
 ### Running Daemon
+
 ```bash
 # Preferred: use CLI
 python3 cli.py daemon start|stop|restart|status
@@ -76,6 +87,7 @@ AJAZZ_CONFIG=/path/to/buttons.yaml python deck.py
 ```
 
 ### CLI Commands
+
 ```bash
 ajazz daemon start|stop|restart|status  # Daemon control
 ajazz button list                       # Show all buttons
@@ -86,6 +98,7 @@ ajazz device status                     # Show device info
 ```
 
 ### Debugging
+
 ```bash
 # Check running instances
 ps aux | grep deck.py
@@ -105,6 +118,7 @@ LOG_LEVEL=DEBUG python3 cli.py daemon start  # Verbose logging
 ## Autostart Setup
 
 ### Linux (native)
+
 Uses udev rules + systemd user services:
 
 ```bash
@@ -112,18 +126,21 @@ sudo ./install/udev/install.sh
 ```
 
 Creates `/etc/udev/rules.d/99-ajazz-ak820.rules` which:
+
 - Triggers `ajazz-deck.service` on device plug-in (daemon start)
 - Triggers `ajazz-deck-stop.service` on device unplug (daemon stop)
 
 Services run as user systemd (not root) — required for GUI apps like `xterm`, `xdg-open`.
 
 **Debugging udev:**
+
 ```bash
 sudo udevadm control --reload-rules
 sudo udevadm trigger  # Test rules without replug
 ```
 
 ### WSL (Windows)
+
 Uses usbipd instead of udev (WSL doesn't support udev):
 
 ```bash
@@ -138,10 +155,12 @@ See `install/wsl/README-WSL.md` for full setup.
 ## Configuration & Environment
 
 ### Environment Variables
+
 - `AJAZZ_CONFIG`: Path to button config (default: `./buttons.yaml`)
 - `LOG_LEVEL`: Logging verbosity (default: `INFO`)
 
 ### Important Paths
+
 - `deck.log`: Rotating file log (1MB max, 7-day retention)
 - `deck.pid`: Runtime PID file (auto-cleaned on shutdown)
 - `sdk/Python-SDK`: Mirabox SDK submodule
@@ -151,17 +170,19 @@ See `install/wsl/README-WSL.md` for full setup.
 ## Dependencies
 
 From `pyproject.toml`:
+
 - `click>=8.3.1`: CLI framework
 - `hid>=1.0.9`: HID protocol
 - `loguru>=0.7.3`: Logging
 - `pillow>=12.1.1`: Image processing
 - `pyudev>=0.24.4`: Device enumeration
 - `pyyaml>=6.0.3`: Config parsing
-- `rich>=14.3.3`: Terminal formatting
+- `rich>=14.4.0`: Terminal formatting
 
 ## SDK Integration
 
 Mirabox StreamDock SDK (git submodule in `sdk/`):
+
 - `StreamDock.DeviceManager`: Enumerate devices
 - `StreamDock.Devices.StreamDock`: Device instance, `set_key_callback()`
 - `StreamDock.InputTypes.EventType`: Button/encoder events
@@ -175,7 +196,8 @@ Clone with: `git clone --recursive`
 - **shell type**: Uses `shlex.split()` → safe, no injection risk
 - **clipboard/script types**: Use `shell=True` → enables pipes, injection possible
 - **Timeouts**: 5s (safe), 10s (shell) prevent hung processes
-- **Config validation**: Always validate `buttons.yaml` — malicious YAML can execute arbitrary code
+- **Config validation**: Always validate `buttons.yaml` — malicious YAML can execute
+arbitrary code
 
 ## Git Workflow
 
@@ -187,7 +209,10 @@ Align branches before release: merge master → main or switch default.
 ## Development Notes
 
 - **No test framework** yet — consider pytest when adding tests
-- **Single-instance enforcement**: Check `deck.pid` before starting; remove manually if crash without cleanup
-- **Device auto-reconnect**: Device hotplug reloads config (see `_reconnect_event` in deck.py)
-- **WSL networking**: udev not available; use usbipd + Task Scheduler for autostart
+- **Single-instance enforcement**: Check `deck.pid` before starting; remove manually
+  if crash without cleanup
+- **Device auto-reconnect**: Device hotplug
+reloads config (see `_reconnect_event` in deck.py)
+- **WSL networking**: udev not available; use usbipd + Task Scheduler
+for autostart
 - **Platform-specific**: Clipboard uses `/mnt/c/Windows/System32/clip.exe` on WSL

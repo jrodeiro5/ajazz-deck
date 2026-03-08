@@ -1,6 +1,5 @@
 buttons:
   1:
-    image: icons/project_context_btn.png
     label: Project CTX
     script: 'PROJECT=$(cat ~/.ajazz-context 2>/dev/null || pwd)
 

@@ -1,20 +1,63 @@
 [project]
 name = "ajazz-deck"
 version = "0.1.0"
-description = "Add your description here"
+description = "Linux daemon + CLI for the AJAZZ AK820 macro pad with MCP integration"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "click>=8.3.1",
     "fastmcp>=2.3.0",
+    "google-genai>=1.0",
     "hid>=1.0.9",
+    "httpx>=0.27",
     "loguru>=0.7.3",
     "pillow>=12.1.1",
+    "pydantic>=2.0.0",
     "pyudev>=0.24.4",
     "pyyaml>=6.0.3",
+    "python-dotenv>=1.0",
     "rich>=14.3.3",
+]
+
+[project.optional-dependencies]
+dev = [
+    "ruff>=0.1.0",
 ]
 
 [project.scripts]
 ajazz = "cli:cli"
 ajazz-mcp = "mcp_server:main"
+
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+exclude = [
+    "vendor/",
+    ".venv/",
+    "__pycache__/",
+]
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "N",   # pep8-naming
+    "UP",  # pyupgrade
+    "B",   # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "TCH", # flake8-type-checking
+]
+ignore = [
+    "E501",  # line too long (handled by formatter)
+    "B008",  # do not perform function calls in argument defaults
+]
+
+[tool.ruff.lint.per-file-ignores]
+"deck.py" = ["E402"]  # Allow imports after sys.path modification
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "lf"
