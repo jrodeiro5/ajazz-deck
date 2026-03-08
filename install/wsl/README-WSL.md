@@ -2,6 +2,11 @@
 
 WSL does not support udev. Use usbipd to attach the device.
 
+> ⚠️ **IMPORTANT — Avoid naming conflicts:**
+> Do not create a shell alias named `ajazz` for the attachment script.
+> The `ajazz` command is reserved for the CLI tool. Use `ajazz-attach` as an alias
+> or run `attach-device.ps1` directly from PowerShell instead.
+
 ## One-time setup
 
 ```powershell
@@ -19,8 +24,17 @@ usbipd bind --hardware-id 0300:3010
 usbipd attach --wsl --hardware-id 0300:3010
 
 # Then start the daemon from WSL:
-python3 cli.py daemon start
+ajazz daemon start
 ```
+
+**Optional:** Add this alias to your `~/.zshrc` or `~/.bashrc` for convenience:
+
+```bash
+alias ajazz-attach='powershell.exe -File /path/to/install/wsl/attach-device.ps1'
+```
+
+Then you can simply run `ajazz-attach` to attach the device, and `ajazz daemon start` to run the daemon.
+
 
 ## Automate with Task Scheduler (optional)
 
@@ -31,11 +45,11 @@ Create a Windows Task Scheduler entry to auto-attach device on login:
 3. Trigger: **When I log on** (any user)
 4. Action: **Start a program**
    - Program: `powershell.exe`
-   - Arguments: `-ExecutionPolicy Bypass -File "C:\path\to\ajazz-deck\install\wsl\attach.ps1"`
+   - Arguments: `-ExecutionPolicy Bypass -File "C:\path\to\ajazz-deck\install\wsl\attach-device.ps1"`
 5. Conditions: Uncheck "Start the task only if the computer is on AC power"
 6. Settings: Check "Allow task to be run on demand"
 
-**Alternative:** Run `attach.ps1` manually from PowerShell when needed.
+**Alternative:** Run `attach-device.ps1` manually from PowerShell when needed.
 
 ## Troubleshooting
 
