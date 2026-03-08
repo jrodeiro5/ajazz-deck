@@ -45,3 +45,4 @@ mcp.json
 # Environment variables (API keys, secrets)
 .env
 CHANGELOG-INTERNAL.md
+PUSH.md
