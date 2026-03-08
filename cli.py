@@ -2,6 +2,7 @@
 """Simple AJAZZ CLI implementation."""
 
 import os
+import shlex
 import subprocess
 import sys
 import time
@@ -253,7 +254,7 @@ def test(button_id):
             )
         else:
             subprocess.run(
-                command,
+                shlex.split(command),
                 timeout=5,
                 capture_output=True,
             )
