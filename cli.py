@@ -453,31 +453,59 @@ def device():
 @device.command()
 def status():
     """Show device connection status."""
+    daemon_status = get_daemon_status()
+
+    # Check daemon status
+    if "running" not in daemon_status:
+        console.print(
+            "[yellow]ℹ Daemon not running[/yellow] — Start with: ajazz daemon start"
+        )
+        return
+
+    # Daemon is running, check logs for device info
+    if not LOG_FILE.exists():
+        console.print("[cyan]Daemon running[/cyan]")
+        console.print("  Status: [green]Running[/green]")
+        return
+
     try:
-        from StreamDock.DeviceManager import DeviceManager
+        log_content = LOG_FILE.read_text()
+        log_lines = log_content.strip().split("\n")
 
-        manager = DeviceManager()
-        devices = manager.enumerate()
+        # Look for latest "Connected to" line
+        device_info = None
+        for line in reversed(log_lines):
+            if "Connected to" in line and "Listening" not in line:
+                device_info = line
+                break
 
-        if not devices:
-            console.print("[yellow]✗ No AJAZZ AKP153 device connected[/yellow]")
-            return
+        if device_info:
+            console.print("[green]✓ Device connected[/green]")
+            console.print(f"  Daemon: {daemon_status}")
 
-        device = devices[0]
-        console.print("[green]✓ Device connected[/green]")
-        console.print("  Model: [cyan]AJAZZ AKP153[/cyan]")
-        console.print("  Status: [green]Connected[/green]")
-        if hasattr(device, "VENDOR_ID"):
-            console.print(
-                f"  VID/PID: [blue]0x{device.VENDOR_ID:04x}:0x{device.PRODUCT_ID:04x}[/blue]"
-            )
-    except ImportError:
-        console.print("[red]✗ StreamDock SDK not available[/red]")
-        sys.exit(1)
-    except RuntimeError:
-        console.print("[yellow]✗ No AJAZZ AKP153 device found[/yellow]")
+            # Extract device path and firmware info
+            if "/dev/hidraw" in device_info:
+                parts = device_info.split("Connected to ")
+                if len(parts) > 1:
+                    device_path = parts[1].strip()
+                    console.print(f"  Device: [cyan]{device_path}[/cyan]")
+            if "firmware:" in device_info:
+                firmware = device_info.split("firmware: ")[1].rstrip(")")
+                console.print(f"  Firmware: [blue]{firmware}[/blue]")
+        else:
+            # Check for error messages
+            for line in reversed(log_lines[-20:]):
+                if "ERROR" in line and "device" in line.lower():
+                    console.print("[yellow]✗ Device error detected[/yellow]")
+                    console.print(f"  {line}")
+                    return
+
+            console.print("[cyan]Daemon running[/cyan]")
+            console.print("  Status: [green]Running[/green]")
+            console.print("  [dim]No device info in recent logs[/dim]")
+
     except Exception as e:
-        console.print(f"[red]✗ Error checking device: {e}[/red]")
+        console.print(f"[red]Error reading daemon status: {e}[/red]")
         sys.exit(1)
 
 
