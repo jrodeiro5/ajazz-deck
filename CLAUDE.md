@@ -279,6 +279,11 @@ arbitrary code
 
 Align branches before release: merge master → main or switch default.
 
+> **TODO (post-v0.2.0)**: Rename branches to modern GitHub standards:
+> - `main` → primary/default branch (development)
+> - `master` → deprecated or used as stable release branch
+> See: https://github.com/github/renaming
+
 ## Code Quality & Linting
 
 **Ruff** handles linting and formatting:
