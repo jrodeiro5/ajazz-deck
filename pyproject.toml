@@ -3,6 +3,7 @@ name = "ajazz-deck"
 version = "0.1.0"
 description = "Linux daemon + CLI for the AJAZZ AKP153 macro pad with MCP integration"
 readme = "README.md"
+license = "MIT"
 requires-python = ">=3.12"
 dependencies = [
     "click>=8.3.1",
@@ -18,6 +19,12 @@ dependencies = [
     "python-dotenv>=1.0",
     "rich>=14.3.3",
 ]
+
+[project.urls]
+Homepage = "https://github.com/jrodeiro5/ajazz-deck"
+Repository = "https://github.com/jrodeiro5/ajazz-deck"
+Issues = "https://github.com/jrodeiro5/ajazz-deck/issues"
+Changelog = "https://github.com/jrodeiro5/ajazz-deck/blob/main/CHANGELOG.md"
 
 [dependency-groups]
 dev = [
