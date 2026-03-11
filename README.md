@@ -143,7 +143,7 @@ clear_button_image(button_id=3)
 - **Image Format**: PNG (converted internally to JPEG for device)
 - **Dimensions**: 96×96 pixels (auto-resized)
 - **Storage**: Icons saved to `icons/{button_id}.png`
-- **Device Sync**: Images pushed to device on daemon startup or reconnect
+- **Generation vs. Display**: Images are generated and saved successfully, but will only display on the physical AKP153 device when the daemon is running and the device is connected. The generation process always succeeds; device display depends on daemon state.
 
 ## API Keys & Image Generation
 
@@ -189,13 +189,6 @@ export GOOGLE_API_KEY="your-google-api-key-here"
 > since the MCP server process inherits only the env vars defined in `.mcp.json`.
 
 Get a free API key at <https://aistudio.google.com/apikey>.
-
-## Changelog
-
-See [CHANGELOG.md](CHANGELOG.md) for user-facing changes and release notes.
-
-For developers, see [CHANGELOG-INTERNAL.md](CHANGELOG-INTERNAL.md) for technical
-details, architecture changes, and development notes.
 
 ## MCP Server (Claude Code Integration)
 
