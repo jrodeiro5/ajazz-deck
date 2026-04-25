@@ -18,6 +18,8 @@ dependencies = [
     "pyyaml>=6.0.3",
     "python-dotenv>=1.0",
     "rich>=14.3.4",
+    "authlib>=1.6.11",
+    "python-multipart>=0.0.26",
 ]
 
 [project.urls]
