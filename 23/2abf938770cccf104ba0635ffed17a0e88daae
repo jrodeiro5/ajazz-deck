@@ -1,0 +1,19 @@
+.roborev.toml
+  s_46d6bc3ef12ea5::t_dd464229270638 1-225
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "232abf938770cccf104ba0635ffed17a0e88daae",
+  "prompts": {},
+  "sessions": {
+    "s_46d6bc3ef12ea5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "977714d7-d4b7-4fc5-88ef-c755bf324028",
+        "model": "claude-opus-5"
+      },
+      "human_author": "jrodeiro5 <jrodeiro.dev@gmail.com>"
+    }
+  }
+}
