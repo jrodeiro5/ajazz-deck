@@ -1,0 +1,7 @@
+# ajazz-deck is the only public repo registered with roborev, so it is the only
+# one where a review may leave this machine. Global config is deny-by-default:
+# local Ornith, empty backup. This file opts this repo into the full fallback
+# ladder — the non-pro alias is the one LiteLLM routes onward to
+# deepseek-v4-flash-opencode. Do not copy this file into a private repo.
+review_backup_model = 'litellm/xsub_mimo-v2.5'
+fix_backup_model = 'litellm/xsub_mimo-v2.5'
