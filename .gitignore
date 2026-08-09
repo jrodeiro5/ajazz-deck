@@ -47,3 +47,8 @@ mcp.json
 CHANGELOG-INTERNAL.md
 PUSH.md
 .gitnexus
+# roborev snapshots
+/.roborev/
+# Generated OpenWiki — regenerated locally, and .last-update.json names internal model routes.
+/openwiki/
+/.scannerwork/
