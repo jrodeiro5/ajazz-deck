@@ -1,45 +1,16 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 616 240" width="616" height="240" role="img" aria-label="ajazz-deck"><title>ajazz-deck</title><style>.f{fill:#eceef3}.fd{fill:#eceef3;opacity:.3}.a{fill:currentColor}
-.fs,.as,.fds{fill:none;stroke-linecap:round;stroke-linejoin:round}
-.fs{stroke:#eceef3}.fds{stroke:#eceef3;opacity:.3}.as{stroke:currentColor}
-.pulse,.eq,.bob,.turn,.slide,.fall,.scan,.scrub,.swap,.lit,.ripple,.wig,.grow,.cc{transform-box:fill-box;transform-origin:center}
-.spin,.rspin{transform-box:view-box;transform-origin:120px 120px}
-.wig,.grow{transform-origin:50% 100%}
-.chop{transform-box:view-box;transform-origin:184px 104px}
-.spin{animation:spin 12s linear infinite}.rspin{animation:spin 8s linear infinite reverse}
-.pulse{animation:pulse 2.4s ease-in-out infinite}
-.blink{animation:blink 1.6s steps(1) infinite}
-.eq{animation:eq 1.6s ease-in-out infinite}
-.bob{animation:bob 2.4s ease-in-out infinite}
-.slide{animation:slide 3s ease-in-out infinite}
-.draw{stroke-dasharray:100;animation:draw 4s ease-in-out infinite}
-.ripple{animation:ripple 3s ease-out infinite}
-.lit{animation:lit 3s ease-in-out infinite}
-.turn{animation:turn 4s ease-in-out infinite}
-.scan{animation:scan 3.2s ease-in-out infinite}
-.scrub{animation:scrub 4s linear infinite}
-.swap{animation:swap 4s ease-in-out infinite}
-.fall{animation:fall 2.4s ease-in infinite}
-.wig{animation:wig 1.2s ease-in-out infinite}
-.grow{animation:grow 3s ease-in-out infinite}
-.chop{animation:chop 2.2s ease-in-out infinite}
-.cc{animation:cc 8s infinite backwards}
-@keyframes spin{to{transform:rotate(360deg)}}
-@keyframes pulse{50%{transform:scale(1.28)}}
-@keyframes blink{50%{opacity:.15}}
-@keyframes eq{50%{transform:scaleY(.35)}}
-@keyframes bob{50%{transform:translateY(-9px)}}
-@keyframes slide{50%{transform:translateX(var(--d,28px))}}
-@keyframes draw{0%,10%{stroke-dashoffset:100}40%,85%{stroke-dashoffset:0}100%{stroke-dashoffset:100}}
-@keyframes ripple{0%{transform:scale(.3);opacity:1}100%{transform:scale(1.5);opacity:0}}
-@keyframes lit{0%{opacity:0}10%,30%{opacity:1}45%,100%{opacity:0}}
-@keyframes turn{50%{transform:scaleX(.12)}}
-@keyframes scan{0%{transform:translateY(0);opacity:0}15%,80%{opacity:1}100%{transform:translateY(104px);opacity:0}}
-@keyframes scrub{from{transform:translateX(0)}to{transform:translateX(104px)}}
-@keyframes swap{0%,20%{transform:none}45%,70%{transform:translateX(var(--d))}95%,100%{transform:none}}
-@keyframes fall{0%{transform:translateY(0);opacity:0}20%{opacity:1}100%{transform:translateY(90px);opacity:0}}
-@keyframes wig{50%{transform:rotate(16deg)}}
-@keyframes grow{0%{transform:scaleY(.15)}55%,100%{transform:scaleY(1)}}
-@keyframes chop{0%,60%,100%{transform:rotate(0)}70%{transform:rotate(-16deg)}80%{transform:rotate(3deg)}}
-@keyframes cc{0%{opacity:0}4%,22%{opacity:1}26%,100%{opacity:0}}
-@media (prefers-reduced-motion:reduce){*{animation:none!important}}
-.w{fill:#12141a}@media (prefers-color-scheme:dark){.w{fill:#eceef3}}</style><rect x="20" y="20" width="200" height="200" rx="52" fill="#12141a"/><g style="color:#f472b6"><rect x="62" y="83" width="32" height="32" rx="9" class="fd" /><rect x="62" y="83" width="32" height="32" rx="9" class="a lit" style="animation-delay:0.0s"/><rect x="104" y="83" width="32" height="32" rx="9" class="fd" /><rect x="104" y="83" width="32" height="32" rx="9" class="a lit" style="animation-delay:0.45s"/><rect x="146" y="83" width="32" height="32" rx="9" class="fd" /><rect x="146" y="83" width="32" height="32" rx="9" class="a lit" style="animation-delay:0.9s"/><rect x="62" y="125" width="32" height="32" rx="9" class="fd" /><rect x="62" y="125" width="32" height="32" rx="9" class="a lit" style="animation-delay:1.35s"/><rect x="104" y="125" width="32" height="32" rx="9" class="fd" /><rect x="104" y="125" width="32" height="32" rx="9" class="a lit" style="animation-delay:1.8s"/><rect x="146" y="125" width="32" height="32" rx="9" class="fd" /><rect x="146" y="125" width="32" height="32" rx="9" class="a lit" style="animation-delay:2.25s"/></g><path d="M268.8 140.7Q264.2 140.7 261.5 138.1Q258.9 135.4 258.9 131.1Q258.9 126.4 262.2 123.8Q265.5 121.1 271.5 121.1H277.5V119.1Q277.5 117.4 276.3 116.4Q275.1 115.4 272.9 115.4Q270.7 115.4 269.5 116.2Q268.2 117.1 268.1 118.7H260.1Q260.3 114.2 263.7 111.5Q267.1 108.8 273.0 108.8Q279.1 108.8 282.5 111.6Q285.9 114.4 285.9 119.4V140.2H277.8V134.8Q277.2 137.6 274.8 139.2Q272.5 140.7 268.8 140.7ZM271.8 134.0Q274.4 134.0 276.0 132.7Q277.5 131.4 277.5 129.2V126.1H271.6Q269.4 126.1 268.2 127.2Q267.0 128.3 267.0 130.0Q267.0 131.8 268.2 132.9Q269.5 134.0 271.8 134.0Z M293.8 150.2V142.7H302.8Q304.9 142.7 306.2 141.3Q307.5 139.9 307.5 137.6V116.9H293.5V109.4H315.9V137.9Q315.9 143.6 312.6 146.9Q309.2 150.2 303.4 150.2ZM311.4 104.5Q309.1 104.5 307.8 103.3Q306.4 102.1 306.4 100.1Q306.4 98.1 307.8 96.9Q309.1 95.8 311.4 95.8Q313.7 95.8 315.1 96.9Q316.5 98.1 316.5 100.1Q316.5 102.1 315.1 103.3Q313.7 104.5 311.4 104.5Z M336.0 140.7Q331.4 140.7 328.7 138.1Q326.1 135.4 326.1 131.1Q326.1 126.4 329.4 123.8Q332.7 121.1 338.7 121.1H344.7V119.1Q344.7 117.4 343.5 116.4Q342.3 115.4 340.1 115.4Q337.9 115.4 336.7 116.2Q335.4 117.1 335.3 118.7H327.3Q327.5 114.2 330.9 111.5Q334.3 108.8 340.2 108.8Q346.3 108.8 349.7 111.6Q353.1 114.4 353.1 119.4V140.2H345.0V134.8Q344.4 137.6 342.0 139.2Q339.7 140.7 336.0 140.7ZM339.0 134.0Q341.6 134.0 343.2 132.7Q344.7 131.4 344.7 129.2V126.1H338.8Q336.6 126.1 335.4 127.2Q334.2 128.3 334.2 130.0Q334.2 131.8 335.4 132.9Q336.7 134.0 339.0 134.0Z M360.7 140.2V132.9L376.0 116.6H361.3V109.4H385.9V116.6L370.6 132.9H386.5V140.2Z M394.3 140.2V132.9L409.6 116.6H394.9V109.4H419.5V116.6L404.2 132.9H420.1V140.2Z M470.9 140.7Q466.5 140.7 463.7 137.4Q461.0 134.2 461.0 128.7V120.8Q461.0 115.4 463.7 112.1Q466.5 108.8 470.9 108.8Q474.0 108.8 476.2 110.3Q478.3 111.9 479.3 114.7L479.1 107.7V99.3H487.5V140.2H479.4V134.6Q478.4 137.5 476.2 139.1Q474.0 140.7 470.9 140.7ZM474.2 133.4Q476.6 133.4 477.8 132.1Q479.1 130.7 479.1 128.1V121.4Q479.1 118.8 477.8 117.5Q476.6 116.1 474.2 116.1Q471.9 116.1 470.6 117.4Q469.4 118.7 469.4 121.1V128.4Q469.4 130.8 470.6 132.1Q471.9 133.4 474.2 133.4Z M508.1 140.7Q504.0 140.7 500.9 139.2Q497.9 137.6 496.2 134.9Q494.6 132.1 494.6 128.4V121.1Q494.6 117.4 496.2 114.7Q497.9 111.9 500.9 110.3Q504.0 108.8 508.1 108.8Q512.1 108.8 515.1 110.3Q518.1 111.9 519.8 114.7Q521.4 117.4 521.4 121.1V126.8H502.6V128.4Q502.6 131.3 503.9 132.7Q505.3 134.0 508.1 134.0Q509.8 134.0 511.2 133.4Q512.5 132.9 512.8 131.8H521.0Q520.1 135.8 516.6 138.3Q513.0 140.7 508.1 140.7ZM502.6 121.1V121.8L513.4 121.7V121.0Q513.4 118.2 512.1 116.6Q510.8 115.0 508.1 115.0Q505.3 115.0 503.9 116.6Q502.6 118.3 502.6 121.1Z M542.1 140.7Q538.0 140.7 534.9 139.2Q531.9 137.6 530.2 134.9Q528.5 132.1 528.5 128.4V121.1Q528.5 117.4 530.2 114.6Q531.9 111.9 534.9 110.3Q538.0 108.8 542.1 108.8Q548.2 108.8 551.8 111.9Q555.5 115.0 555.7 120.3H547.5Q547.4 118.3 545.9 117.2Q544.4 116.1 542.1 116.1Q539.6 116.1 538.2 117.4Q536.9 118.7 536.9 121.1V128.4Q536.9 130.8 538.2 132.1Q539.6 133.4 542.1 133.4Q544.4 133.4 545.9 132.3Q547.4 131.3 547.5 129.2H555.7Q555.5 134.6 551.8 137.6Q548.2 140.7 542.1 140.7Z M562.4 140.2V99.3H570.8V121.0H575.0L581.5 109.4H590.7L582.1 124.4L590.9 140.2H581.5L575.0 128.1H570.8V140.2Z" class="w"/><path d="M431.8 125.6V117.8H449.8V125.6Z" style="fill:#f472b6"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="240" height="240" role="img" aria-label="ajazz-deck">
+<title>ajazz-deck — one key pressed</title>
+<!-- pad body -->
+<rect x="45" y="55" width="150" height="130" rx="20" fill="none" stroke="#475569" stroke-width="10"/>
+<!-- idle keys -->
+<g fill="#1E293B" stroke="#64748B" stroke-width="4">
+<rect x="62" y="74" width="34" height="30" rx="7"/><rect x="103" y="74" width="34" height="30" rx="7"/><rect x="144" y="74" width="34" height="30" rx="7"/>
+<rect x="62" y="116" width="34" height="30" rx="7"/><rect x="144" y="116" width="34" height="30" rx="7"/>
+</g>
+<!-- backlight bleed of the pressed key -->
+<rect x="97" y="110" width="46" height="42" rx="12" fill="#FFB02E" opacity=".3">
+<animate attributeName="opacity" values=".3;.55;.3" dur="2.2s" repeatCount="indefinite" calcMode="spline" keyTimes="0;.5;1" keySplines="0.65 0 0.35 1;0.65 0 0.35 1"/>
+</rect>
+<!-- the pressed key -->
+<rect x="103" y="120" width="34" height="30" rx="7" fill="#FFB02E"/>
+</svg>
