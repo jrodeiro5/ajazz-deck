@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="240" height="240" role="img" aria-label="ajazz-deck">
+<title>ajazz-deck — one key pressed</title>
+<!-- pad body -->
+<rect x="45" y="55" width="150" height="130" rx="20" fill="none" stroke="#475569" stroke-width="10"/>
+<!-- idle keys -->
+<g fill="#1E293B" stroke="#64748B" stroke-width="4">
+<rect x="62" y="74" width="34" height="30" rx="7"/><rect x="103" y="74" width="34" height="30" rx="7"/><rect x="144" y="74" width="34" height="30" rx="7"/>
+<rect x="62" y="116" width="34" height="30" rx="7"/><rect x="144" y="116" width="34" height="30" rx="7"/>
+</g>
+<!-- backlight bleed of the pressed key -->
+<rect x="97" y="110" width="46" height="42" rx="12" fill="#FFB02E" opacity=".3">
+<animate attributeName="opacity" values=".3;.55;.3" dur="2.2s" repeatCount="indefinite" calcMode="spline" keyTimes="0;.5;1" keySplines="0.65 0 0.35 1;0.65 0 0.35 1"/>
+</rect>
+<!-- the pressed key -->
+<rect x="103" y="120" width="34" height="30" rx="7" fill="#FFB02E"/>
+</svg>
