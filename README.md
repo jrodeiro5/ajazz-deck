@@ -1,3 +1,5 @@
+<p align="center"><img src="assets/logo.svg" alt="ajazz-deck" height="96"></p>
+
 # ajazz-deck
 
 Linux daemon + CLI for the AJAZZ AKP153 macro pad.
