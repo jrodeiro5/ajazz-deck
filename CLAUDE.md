@@ -314,6 +314,13 @@ arbitrary code
 
 All commits go to `main`. Tag releases with version numbers (e.g., `v0.2.0`).
 
+## Boundaries
+
+- **Ask first:** modifying `vendor/` (third-party SDK), breaking changes to the CLI command structure, new dependencies in `pyproject.toml`, changes to the MCP server protocol.
+- **Never:** hardcode absolute paths (use the `PROJECT_DIR` constant), skip error handling in subprocess calls.
+- **Before committing:** `uv run ruff check . --fix`, `uv run ruff format .`, `uv run python3 cli.py config validate`. Update `CHANGELOG.md` for user-facing changes.
+- **Release:** bump the version in `pyproject.toml`, update `CHANGELOG.md`, tag (`git tag vX.Y.Z`), push to `main`.
+
 ## Code Quality & Linting
 
 **Ruff** handles linting and formatting:
@@ -370,29 +377,30 @@ Result: `uv sync` builds the package and installs `ajazz` and `ajazz-mcp` entry 
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
 
-This project is indexed by GitNexus as **ajazz-deck** (415 symbols, 524 relationships, 7 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
+This project is indexed by GitNexus as **ajazz-deck** (343 symbols, 452 relationships, 7 execution flows).
 
-> If any GitNexus tool warns the index is stale, run `npx gitnexus analyze` in terminal first.
+> Index stale? Run `node .gitnexus/run.cjs analyze --index-only` from the project root — it auto-selects an available runner. No `.gitnexus/run.cjs` yet? Bootstrap with `npx`, `bunx`, or `pnpm dlx` — e.g. `bunx gitnexus@latest analyze` (npm 11 npx crash; #1939).
 
 ## Always Do
 
-- **MUST run impact analysis before editing any symbol.** Before modifying a function, class, or method, run `gitnexus_impact({target: "symbolName", direction: "upstream"})` and report the blast radius (direct callers, affected processes, risk level) to the user.
-- **MUST run `gitnexus_detect_changes()` before committing** to verify your changes only affect expected symbols and execution flows.
-- **MUST warn the user** if impact analysis returns HIGH or CRITICAL risk before proceeding with edits.
-- When exploring unfamiliar code, use `gitnexus_query({query: "concept"})` to find execution flows instead of grepping. It returns process-grouped results ranked by relevance.
-- When you need full context on a specific symbol — callers, callees, which execution flows it participates in — use `gitnexus_context({name: "symbolName"})`.
+- **MUST run impact before editing.** Use `impact({target: "symbolName", direction: "upstream"})` or `node .gitnexus/run.cjs impact "symbolName" --direction upstream --repo .`; report callers, processes, and risk. Never substitute grep for graph analysis.
+- **MUST analyze graph changes before committing.** Use `detect_changes({scope: "all"})` (MCP) or `node .gitnexus/run.cjs detect-changes --scope all --repo .` (CLI fallback). `partial: true` or `truncated: true` is not a clean check — a zero means unseen, not unaffected; re-run it. For regression review: `detect_changes({scope: "compare", base_ref: "main"})` or `node .gitnexus/run.cjs detect-changes --scope compare --base-ref "main" --repo .`.
+- MUST warn on HIGH/CRITICAL `risk` pre-edit; never use `riskSharedAxes` to waive a HIGH/CRITICAL `risk` warning. Compare File/symbol: MCP File omits axes; Graph-RAG expands File.
+- **MUST treat `risk: UNKNOWN` as unresolved, not as low.** An empty caller set is not evidence the symbol is unused — it can also mean the callers are not resolvable by the index (plain-object property access, dynamic dispatch, cross-language calls). `impact` pairs `UNKNOWN` with a `riskNote` saying so. Confirm with a text search before treating the symbol as safe to change or delete; do not proceed on the strength of a zero.
+- **MUST use `query({search_query: "concept"})` for concepts/flows, `context({name: "symbolName"})` for a named symbol, or `impact` for blast radius, on read-only callers, dependencies, imports, or execution flow.** Graph first; text search only for empty/`UNKNOWN`/literals.
+- For security review, `explain({target: "fileOrSymbol"})` lists taint findings (source→sink flows; needs `analyze --pdg`).
 
 ## Never Do
 
-- NEVER edit a function, class, or method without first running `gitnexus_impact` on it.
-- NEVER ignore HIGH or CRITICAL risk warnings from impact analysis.
-- NEVER rename symbols with find-and-replace — use `gitnexus_rename` which understands the call graph.
-- NEVER commit changes without running `gitnexus_detect_changes()` to check affected scope.
+- NEVER edit a function, class, or method before MCP/CLI impact analysis.
+- NEVER ignore HIGH or CRITICAL risk warnings from impact analysis, and never read `UNKNOWN` as an all-clear — it means the walk could not answer, which is the one verdict that requires confirming by other means.
+- NEVER rename symbols with find-and-replace — use `rename` which understands the call graph.
+- NEVER commit before MCP/CLI graph change analysis.
 
 ## Resources
 
 | Resource | Use for |
-|----------|---------|
+| --- | --- |
 | `gitnexus://repo/ajazz-deck/context` | Codebase overview, check index freshness |
 | `gitnexus://repo/ajazz-deck/clusters` | All functional areas |
 | `gitnexus://repo/ajazz-deck/processes` | All execution flows |
@@ -401,12 +409,56 @@ This project is indexed by GitNexus as **ajazz-deck** (415 symbols, 524 relation
 ## CLI
 
 | Task | Read this skill file |
-|------|---------------------|
-| Understand architecture / "How does X work?" | `.claude/skills/gitnexus/gitnexus-exploring/SKILL.md` |
-| Blast radius / "What breaks if I change X?" | `.claude/skills/gitnexus/gitnexus-impact-analysis/SKILL.md` |
-| Trace bugs / "Why is X failing?" | `.claude/skills/gitnexus/gitnexus-debugging/SKILL.md` |
-| Rename / extract / split / refactor | `.claude/skills/gitnexus/gitnexus-refactoring/SKILL.md` |
-| Tools, resources, schema reference | `.claude/skills/gitnexus/gitnexus-guide/SKILL.md` |
-| Index, status, clean, wiki CLI commands | `.claude/skills/gitnexus/gitnexus-cli/SKILL.md` |
+| --- | --- |
+| Understand architecture / "How does X work?" | `.claude/skills/gitnexus-exploring/SKILL.md` |
+| Blast radius / "What breaks if I change X?" | `.claude/skills/gitnexus-impact-analysis/SKILL.md` |
+| Trace bugs / "Why is X failing?" | `.claude/skills/gitnexus-debugging/SKILL.md` |
+| Rename / extract / split / refactor | `.claude/skills/gitnexus-refactoring/SKILL.md` |
+| Tools, resources, schema reference | `.claude/skills/gitnexus-guide/SKILL.md` |
+| Index, status, clean, wiki CLI commands | `.claude/skills/gitnexus-cli/SKILL.md` |
 
 <!-- gitnexus:end -->
+
+<!-- OPENWIKI:START -->
+
+## OpenWiki
+
+@AGENTS.md
+
+<!-- OPENWIKI:END -->
+
+<!-- atlas:start -->
+## Atlas — machine-wide context
+
+Atlas maps every repo, service and config dir on this machine. This one's entity
+doc carries its role, stack, services, CI state, last commit, and what is
+currently running out of it.
+
+```bash
+qmd get atlas/repos/ajazz-deck.md    # this repo's entity doc
+qmd query "<topic>"             # search every repo/service/config on this machine
+```
+
+Also here: `openwiki/` = how it works right now (generated from current
+code).
+
+### Qué NO editar aquí
+
+Tres cosas de este repo las escribe la máquina, no tú:
+
+- `openwiki/` — regenerado por el cascade en cada commit (modelo local). Editarlo a
+  mano no se pierde al instante: se pierde en el siguiente commit, sin avisar.
+  ¿Falta algo? Arréglalo en el código o en los docs, y deja que se regenere.
+- `almanac/` — lo mina CodeAlmanac y lo auto-commitea. Tus ediciones van **sólo**
+  bajo su marker `<!-- manual -->`; por encima, se reescriben.
+- `AGENTS.md` — symlink a `CLAUDE.md` (algún repo lo lleva como fichero real, por
+  convención): edita `CLAUDE.md`. El cascade lo sustituye por una copia real mientras
+  genera y lo restaura al terminar, así que un `T` transitorio en `git status` es ese
+  swap, no corrupción.
+
+Los hooks (`pre-commit` = gitleaks, `post-commit` = este cascade) son de atlas y
+compartidos por todos los repos de la máquina: no los edites aquí.
+
+Atlas regenerates the entity doc from scans — hand-edits go below its
+`<!-- manual -->` marker only. Source: ~/dev/infra/atlas.
+<!-- atlas:end -->

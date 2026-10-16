@@ -52,3 +52,6 @@ PUSH.md
 # Generated OpenWiki — regenerated locally, and .last-update.json names internal model routes.
 /openwiki/
 /.scannerwork/
+# Artefactos locales de agentes (no versionar)
+.omo/
+.claude/settings.local.json
